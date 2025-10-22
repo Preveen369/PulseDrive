@@ -4,9 +4,9 @@ import { WeeklyTrendsChart } from '@/components/dashboard/weekly-trends-chart';
 import { Suspense } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AverageStressScore } from '@/components/dashboard/average-stress-score';
 import { LiveHeartRateCard } from '@/components/dashboard/live-heart-rate-card';
 import { LiveFatigueStatusCard } from '@/components/dashboard/live-fatigue-status-card';
+import { LatestStressScoreCard } from '@/components/dashboard/latest-stress-score';
 
 export default function DashboardPage() {
   return (
@@ -16,7 +16,7 @@ export default function DashboardPage() {
           Weekly Dashboard
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <AverageStressScore />
+            <LatestStressScoreCard />
             <LiveHeartRateCard />
             <LiveFatigueStatusCard />
         </div>
