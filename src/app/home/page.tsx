@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/app-shell';
 import { CameraFeed } from '@/components/home/camera-feed';
 import { StressIndicator } from '@/components/home/stress-indicator';
 import { StressAlert } from '@/components/home/stress-alert';
+import { FatigueAlert } from '@/components/home/fatigue-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useUser, useDoc, useFirestore, useMemoFirebase, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
@@ -28,7 +29,8 @@ export default function HomePage() {
   const [isMounted, setIsMounted] = useState(false);
   const [isAnalysisRunning, setIsAnalysisRunning] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
+  const [showStressAlert, setShowStressAlert] = useState(false);
+  const [showFatigueAlert, setShowFatigueAlert] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -43,9 +45,9 @@ export default function HomePage() {
 
   const { data: stressData } = useDoc(userLiveStressRef);
   
-  const playAlertSound = async () => {
+  const playAlertSound = async (text: string) => {
     try {
-      const { audioDataUri } = await textToSpeech("High stress detected. Please consider taking a break.");
+      const { audioDataUri } = await textToSpeech(text);
       if (audioRef.current) {
         audioRef.current.src = audioDataUri;
         audioRef.current.play();
@@ -55,13 +57,24 @@ export default function HomePage() {
     }
   };
 
-  // Effect to show alert when stress level crosses threshold
+  // Effect to show alerts
   useEffect(() => {
-    if (stressData?.stressLevel > 85 && !showAlert) {
-      setShowAlert(true);
-      playAlertSound();
+    if (!stressData) return;
+    
+    // Stress alert
+    if (stressData.stressLevel > 85 && !showStressAlert) {
+      setShowStressAlert(true);
+      playAlertSound("High stress detected. Please consider taking a break.");
     }
-  }, [stressData, showAlert]);
+    
+    // Fatigue alert
+    const fatigueStates = ['sleepy', 'fatigue', 'sleeping'];
+    if (fatigueStates.includes(stressData.fatigueStatus) && !showFatigueAlert) {
+        setShowFatigueAlert(true);
+        playAlertSound("Drowsiness detected. Please pull over and rest now.");
+    }
+
+  }, [stressData, showStressAlert, showFatigueAlert]);
 
   // Effect to capture frames and analyze stress
   useEffect(() => {
@@ -222,7 +235,8 @@ export default function HomePage() {
           </Card>
         </div>
       </div>
-      <StressAlert open={showAlert} onOpenChange={setShowAlert} />
+      <StressAlert open={showStressAlert} onOpenChange={setShowStressAlert} />
+      <FatigueAlert open={showFatigueAlert} onOpenChange={setShowFatigueAlert} />
       <canvas ref={canvasRef} className="hidden"></canvas>
     </AppShell>
   );
