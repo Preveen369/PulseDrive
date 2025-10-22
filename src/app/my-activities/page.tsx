@@ -82,7 +82,7 @@ const BreathingGuide = () => {
 };
 
 const MeditationGuide = () => {
-    const prompts = [
+    const originalPrompts = [
       "Find a comfortable, upright position.",
       "Close your eyes gently.",
       "Focus on your natural breath.",
@@ -97,13 +97,13 @@ const MeditationGuide = () => {
       "Slowly bring your awareness back to the room.",
     ];
 
+    const [shuffledPrompts, setShuffledPrompts] = useState(originalPrompts);
     const [isActive, setIsActive] = useState(false);
     const [promptIndex, setPromptIndex] = useState(0);
     const [secondsLeft, setSecondsLeft] = useState(60);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
-        // Use a pleasant bell sound that is free to use
         audioRef.current = new Audio('https://actions.google.com/sounds/v1/alarms/medium_bell_ringing_near.ogg');
         audioRef.current.volume = 0.5;
     }, []);
@@ -126,7 +126,7 @@ const MeditationGuide = () => {
         }, 1000);
 
         const promptInterval = setInterval(() => {
-            setPromptIndex(prev => (prev + 1) % prompts.length);
+            setPromptIndex(prev => (prev + 1) % shuffledPrompts.length);
         }, 5000);
 
         return () => {
@@ -134,9 +134,19 @@ const MeditationGuide = () => {
             clearInterval(promptInterval);
         }
 
-    }, [isActive, secondsLeft, prompts.length]);
+    }, [isActive, secondsLeft, shuffledPrompts.length]);
+    
+    const shuffleArray = (array: string[]) => {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
+    };
 
     const handleStart = () => {
+        setShuffledPrompts(shuffleArray(originalPrompts));
         setIsActive(true);
         setSecondsLeft(60);
         setPromptIndex(0);
@@ -163,7 +173,7 @@ const MeditationGuide = () => {
             {isActive ? (
                 <>
                     <p className="text-xl text-foreground transition-opacity duration-1000 animate-fade-in-out" key={promptIndex}>
-                        {prompts[promptIndex]}
+                        {shuffledPrompts[promptIndex]}
                     </p>
                     <p className="text-5xl font-bold text-primary">{secondsLeft}s</p>
                 </>
