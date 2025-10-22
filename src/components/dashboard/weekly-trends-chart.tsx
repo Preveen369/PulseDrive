@@ -1,11 +1,13 @@
 'use client';
 
-import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
+import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
+  ChartLegend,
+  ChartLegendContent,
 } from '@/components/ui/chart';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, limit, orderBy } from 'firebase/firestore';
@@ -15,8 +17,12 @@ import { Loader2 } from 'lucide-react';
 
 const chartConfig = {
   stress: {
-    label: 'Stress Level',
+    label: 'Stress',
     color: 'hsl(var(--primary))',
+  },
+  heartRate: {
+    label: 'Heart Rate',
+    color: 'hsl(var(--destructive))',
   },
 } satisfies ChartConfig;
 
@@ -28,7 +34,7 @@ export function WeeklyTrendsChart() {
     if (!firestore || !user) return null;
     return query(
       collection(firestore, `users/${user.uid}/stress_data`),
-      orderBy('timestamp', 'desc'),
+      orderBy('timestamp', 'asc'), // Order by ascending to show time progression
       limit(50) // Fetch more data for a better trend line
     );
   }, [firestore, user]);
@@ -38,26 +44,11 @@ export function WeeklyTrendsChart() {
   
   const chartData = useMemo(() => {
     if (!historicalData || historicalData.length === 0) return [];
-    // Aggregate data by day, taking the average stress level for each day.
-    const dailyAverages = historicalData.reduce((acc, item) => {
-      if (!item.timestamp) return acc;
-      const day = format(item.timestamp.toDate(), 'eee');
-      if (!acc[day]) {
-        acc[day] = { day, totalStress: 0, count: 0 };
-      }
-      acc[day].totalStress += item.stressLevel;
-      acc[day].count++;
-      return acc;
-    }, {} as Record<string, {day: string, totalStress: number, count: number}>);
-
-    const orderedDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    
-    return orderedDays.map(day => {
-       if (dailyAverages[day]) {
-         return { day, stress: Math.round(dailyAverages[day].totalStress / dailyAverages[day].count) };
-       }
-       return { day, stress: undefined }; // Use undefined for days with no data
-    });
+    return historicalData.map(item => ({
+        time: item.timestamp ? format(item.timestamp.toDate(), 'HH:mm') : 'N/A',
+        stress: item.stressLevel,
+        heartRate: item.heartRate,
+    }));
   }, [historicalData]);
 
 
@@ -85,13 +76,33 @@ export function WeeklyTrendsChart() {
         data={chartData}
         margin={{
           left: -20,
-          right: 12,
+          right: 20,
+          top: 5,
+          bottom: 5,
         }}
       >
         <CartesianGrid vertical={false} />
-        <YAxis dataKey="stress" domain={[0, 100]} tickLine={false} axisLine={false} tickMargin={8} />
+        <YAxis 
+            yAxisId="left" 
+            dataKey="stress" 
+            domain={[0, 100]} 
+            tickLine={false} 
+            axisLine={false} 
+            tickMargin={8} 
+            stroke="hsl(var(--primary))"
+        />
+        <YAxis 
+            yAxisId="right" 
+            orientation="right" 
+            dataKey="heartRate" 
+            domain={[40, 140]} 
+            tickLine={false} 
+            axisLine={false} 
+            tickMargin={8}
+            stroke="hsl(var(--destructive))"
+        />
         <XAxis
-          dataKey="day"
+          dataKey="time"
           tickLine={false}
           axisLine={false}
           tickMargin={8}
@@ -100,18 +111,22 @@ export function WeeklyTrendsChart() {
           cursor={false}
           content={<ChartTooltipContent indicator="dot" />}
         />
+        <ChartLegend content={<ChartLegendContent />} />
         <Line
+          yAxisId="left"
           dataKey="stress"
           type="natural"
           stroke="var(--color-stress)"
           strokeWidth={3}
-          dot={{
-            fill: 'var(--color-stress)',
-          }}
-          activeDot={{
-            r: 6,
-          }}
-          connectNulls // This will connect lines across points with no data
+          dot={false}
+        />
+        <Line
+          yAxisId="right"
+          dataKey="heartRate"
+          type="natural"
+          stroke="var(--color-heartRate)"
+          strokeWidth={3}
+          dot={false}
         />
       </LineChart>
     </ChartContainer>
