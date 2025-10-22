@@ -1,0 +1,115 @@
+/**
+ * @fileoverview Firestore Security Rules for PulseDrive application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for all personal data
+ * (profile, stress data, and stress tips). Users can only access their own data.
+ *
+ * Data Structure:
+ * - /users/{userId}/profile: User profile information.
+ * - /users/{userId}/stress_data/{stressDataId}: Stress data records for a user.
+ * - /users/{userId}/stress_tips/{stressTipId}: Stress reduction tips for a user.
+ *
+ * Key Security Decisions:
+ * - All data is private and user-specific, stored under /users/{userId}.
+ * - Users can only read and write their own data.
+ * - Listing other user's private data is explicitly denied.
+ *
+ * Denormalization for Authorization:
+ * - The 'userId' is included in the path for all user-specific data. This allows
+ *   security rules to directly check `request.auth.uid` against the `userId`
+ *   in the path, avoiding the need for additional `get()` operations.
+ *
+ * Structural Segregation:
+ * - Private user data is stored under the /users/{userId} collection,
+ *   ensuring that only the user can access their own data.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Secure user profile information. Only the user with matching {userId} can access.
+     * @path /users/{userId}/profile
+     * @allow (create) - Authenticated user with UID matching {userId} can create their profile.
+     * @allow (get, update, delete) - Authenticated user with UID matching {userId} can read, update, or delete their profile.
+     * @deny (create) - Authenticated user attempts to create a profile with a mismatched {userId}.
+     * @deny (get, update, delete) - Authenticated user attempts to read, update, or delete a profile with a mismatched {userId}.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId}/profile {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Secure stress data records associated with a user. Only the user with matching {userId} can access.
+     * @path /users/{userId}/stress_data/{stressDataId}
+     * @allow (create) - Authenticated user with UID matching {userId} can create stress data.
+     * @allow (get, update, delete) - Authenticated user with UID matching {userId} can read, update, or delete their own stress data.
+     * @deny (create) - Authenticated user attempts to create stress data with a mismatched {userId}.
+     * @deny (get, update, delete) - Authenticated user attempts to read, update, or delete stress data with a mismatched {userId}.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId}/stress_data/{stressDataId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Secure personalized stress reduction tips for each user. Only the user with matching {userId} can access.
+     * @path /users/{userId}/stress_tips/{stressTipId}
+     * @allow (create) - Authenticated user with UID matching {userId} can create stress tips.
+     * @allow (get, update, delete) - Authenticated user with UID matching {userId} can read, update, or delete their own stress tips.
+     * @deny (create) - Authenticated user attempts to create stress tips with a mismatched {userId}.
+     * @deny (get, update, delete) - Authenticated user attempts to read, update, or delete stress tips with a mismatched {userId}.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId}/stress_tips/{stressTipId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+}
