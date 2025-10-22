@@ -1,0 +1,184 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user profile within the PulseDrive application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user profile.",
+          "format": "uuid"
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the user."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user profile was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "name",
+        "createdAt"
+      ]
+    },
+    "StressData": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "StressData",
+      "type": "object",
+      "description": "Represents a single instance of stress data recorded for a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the stress data record.",
+          "format": "uuid"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N StressData)"
+        },
+        "stressLevel": {
+          "type": "number",
+          "description": "The measured stress level. (Likely a normalized value or index)"
+        },
+        "heartRate": {
+          "type": "number",
+          "description": "The measured heart rate in beats per minute (BPM)."
+        },
+        "fatigueStatus": {
+          "type": "string",
+          "description": "The user's fatigue status.",
+          "enum": ["active", "sleepy", "fatigue", "sleeping"]
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp indicating when the stress level was recorded.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "stressLevel",
+        "heartRate",
+        "fatigueStatus",
+        "timestamp"
+      ]
+    },
+    "StressTip": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "StressTip",
+      "type": "object",
+      "description": "Represents a personalized tip for stress reduction and fatigue prevention.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the stress reduction tip.",
+          "format": "uuid"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N StressTip)"
+        },
+        "tipText": {
+          "type": "string",
+          "description": "The text of the stress reduction tip."
+        },
+        "relevanceScore": {
+          "type": "number",
+          "description": "A score indicating the relevance of the tip for the specific user and situation."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp indicating when the stress reduction tip was generated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "tipText",
+        "relevanceScore",
+        "timestamp"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}/profile",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profile information. Uses path-based ownership: only the user with matching {userId} can access. Includes denormalized 'userId' in the path for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/stress_data/{stressDataId}",
+        "definition": {
+          "entityName": "StressData",
+          "schema": {
+            "$ref": "#/backend/entities/StressData"
+          },
+          "description": "Stores stress data records associated with a user. Uses path-based ownership: only the user with matching {userId} can access. Includes denormalized 'userId' in the path for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "stressDataId",
+              "description": "The unique identifier of the stress data record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/stress_tips/{stressTipId}",
+        "definition": {
+          "entityName": "StressTip",
+          "schema": {
+            "$ref": "#/backend/entities/StressTip"
+          },
+          "description": "Stores personalized stress reduction tips for each user. Uses path-based ownership: only the user with matching {userId} can access. Includes denormalized 'userId' in the path for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "stressTipId",
+              "description": "The unique identifier of the stress reduction tip."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to securely store user profiles, stress data, and stress reduction tips for the PulseDrive application. The structure prioritizes authorization independence and supports efficient querying. Path-based ownership is used for private user data, ensuring that only the user can access their own stress data and tips.\n\n*   `/users/{userId}/profile`: Stores user profile information. This collection uses path-based ownership, meaning that only the authenticated user with the matching `userId` can access this document.\n*   `/users/{userId}/stress_data/{stressDataId}`: Stores stress data records associated with a user. This collection also uses path-based ownership. Each stress data document includes the `userId`, ensuring that security rules can verify that the authenticated user matches the `userId` in the document.\n*   `/users/{userId}/stress_tips/{stressTipId}`: Stores personalized stress reduction tips for each user. This collection uses path-based ownership as well, with each tip document containing the `userId` to enforce ownership in security rules.\n\n**Authorization Independence:** The structure ensures authorization independence by using path-based ownership for user-specific data. Security rules can directly check `request.auth.uid` against the `userId` in the document path or within the document itself, without needing to perform additional `get()` operations to retrieve parent document data.\n\n**QAPs Support:** The structure supports secure `list` operations by organizing data into user-specific subcollections. Security rules can allow listing documents within `/users/{userId}/stress_data` and `/users/{userId}/stress_tips` only if `request.auth.uid == userId`, preventing unauthorized access to other users' data. The separation of data into subcollections based on ownership ensures that rules do not act as filters, as each collection inherently contains data with the same access requirements."
+  }
+}

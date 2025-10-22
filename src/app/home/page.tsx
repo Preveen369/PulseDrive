@@ -14,6 +14,8 @@ import { getStressLevelFromImage } from '@/ai/flows/stress-level-from-image';
 import { Play, Square, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
+import { HeartRateIndicator } from '@/components/home/heart-rate-indicator';
+import { FatigueStatus } from '@/components/home/fatigue-status';
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser();
@@ -83,11 +85,12 @@ export default function HomePage() {
           const frameDataUri = canvas.toDataURL('image/jpeg');
 
           try {
-            const { stressLevel, heartRate } = await getStressLevelFromImage({ frameDataUri });
+            const { stressLevel, heartRate, fatigueStatus } = await getStressLevelFromImage({ frameDataUri });
             
             setDocumentNonBlocking(liveStressRef, {
               stressLevel,
               heartRate,
+              fatigueStatus,
               timestamp: serverTimestamp(),
               userId: user.uid,
             }, { merge: true });
@@ -143,7 +146,7 @@ export default function HomePage() {
     // Reset stress level in firestore
     if (user && firestore) {
       const liveStressRef = doc(firestore, `users/${user.uid}/stress_data`, 'live');
-      setDocumentNonBlocking(liveStressRef, { stressLevel: 0, heartRate: 0, timestamp: serverTimestamp() }, { merge: true });
+      setDocumentNonBlocking(liveStressRef, { stressLevel: 0, heartRate: 0, fatigueStatus: 'active', timestamp: serverTimestamp() }, { merge: true });
     }
   };
   
@@ -180,7 +183,7 @@ export default function HomePage() {
                     hasCameraPermission={hasCameraPermission}
                 />
             </div>
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-6">
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-lg font-medium flex items-center justify-between">
@@ -190,6 +193,28 @@ export default function HomePage() {
                     </CardHeader>
                     <CardContent>
                         <StressIndicator stressLevel={stressData?.stressLevel ?? 0} />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg font-medium flex items-center justify-between">
+                        <span>Real-time Heart Rate</span>
+                         {isProcessing && <Loader2 className="h-5 w-5 animate-spin" />}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <HeartRateIndicator heartRate={stressData?.heartRate ?? 0} />
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="text-lg font-medium flex items-center justify-between">
+                        <span>Fatigue Status</span>
+                         {isProcessing && <Loader2 className="h-5 w-5 animate-spin" />}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <FatigueStatus fatigueStatus={stressData?.fatigueStatus ?? 'active'} />
                     </CardContent>
                 </Card>
             </div>
