@@ -1,10 +1,9 @@
 'use client';
 import { useState, useEffect, type RefObject } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Camera, Video, VideoOff, PauseCircle } from 'lucide-react';
+import { Camera, VideoOff, PauseCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
 
 type CameraFeedProps = {
   videoRef: RefObject<HTMLVideoElement>;
@@ -33,14 +32,14 @@ export function CameraFeed({ videoRef, isAnalysisRunning, hasCameraPermission }:
   }, [videoRef]);
 
   useEffect(() => {
-    if (hasCameraPermission === false && isAnalysisRunning) {
+    if (hasCameraPermission === false) {
       toast({
         variant: 'destructive',
         title: 'Camera Access Denied',
         description: 'Please enable camera permissions in your browser settings to use this app.',
       });
     }
-  }, [hasCameraPermission, isAnalysisRunning, toast]);
+  }, [hasCameraPermission, toast]);
 
   const togglePlayPause = () => {
     const video = videoRef.current;

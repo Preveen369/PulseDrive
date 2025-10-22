@@ -12,6 +12,7 @@ import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { doc, serverTimestamp } from 'firebase/firestore';
 import { getStressLevelFromImage } from '@/ai/flows/stress-level-from-image';
 import { Play, Square, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser();
@@ -19,11 +20,17 @@ export default function HomePage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const { toast } = useToast();
 
+  const [isMounted, setIsMounted] = useState(false);
   const [isAnalysisRunning, setIsAnalysisRunning] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const userStressRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -85,6 +92,11 @@ export default function HomePage() {
   const startAnalysis = async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setHasCameraPermission(false);
+       toast({
+        variant: 'destructive',
+        title: 'Camera Not Supported',
+        description: 'Your browser does not support camera access.',
+      });
       return;
     }
     try {
@@ -118,7 +130,7 @@ export default function HomePage() {
     }
   };
   
-  if (isUserLoading) {
+  if (isUserLoading || !isMounted) {
     return <AppShell><div><Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" /></div></AppShell>;
   }
   
