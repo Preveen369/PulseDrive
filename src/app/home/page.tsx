@@ -191,15 +191,15 @@ export default function HomePage() {
           )}
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <CameraFeed 
-            videoRef={videoRef} 
-            isAnalysisRunning={isAnalysisRunning}
-            hasCameraPermission={hasCameraPermission}
-          />
+      <div className="space-y-6">
+        <div className="w-full">
+            <CameraFeed 
+                videoRef={videoRef} 
+                isAnalysisRunning={isAnalysisRunning}
+                hasCameraPermission={hasCameraPermission}
+            />
         </div>
-        <div className="lg:col-span-1 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg font-medium flex items-center justify-between">
