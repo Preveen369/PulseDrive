@@ -8,7 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { BellRing, Coffee, Wind } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { BellRing, Coffee, Wind, Music } from 'lucide-react';
 
 type StressAlertProps = {
   open: boolean;
@@ -16,6 +17,16 @@ type StressAlertProps = {
 };
 
 export function StressAlert({ open, onOpenChange }: StressAlertProps) {
+  const { toast } = useToast();
+
+  const handlePlayMusic = () => {
+    toast({
+      title: "Feature Coming Soon!",
+      description: "The relaxing music feature is currently under development.",
+    });
+    onOpenChange(false);
+  }
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -36,6 +47,9 @@ export function StressAlert({ open, onOpenChange }: StressAlertProps) {
           </AlertDialogAction>
           <AlertDialogAction className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => onOpenChange(false)}>
             <Wind /> Breathing Exercise
+          </AlertDialogAction>
+           <AlertDialogAction className="w-full" variant="secondary" onClick={handlePlayMusic}>
+            <Music /> Play Relaxing Music
           </AlertDialogAction>
           <AlertDialogCancel className="w-full mt-0" onClick={() => onOpenChange(false)}>
             Dismiss

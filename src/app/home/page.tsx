@@ -13,6 +13,7 @@ import { doc, serverTimestamp } from 'firebase/firestore';
 import { getStressLevelFromImage } from '@/ai/flows/stress-level-from-image';
 import { Play, Square, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { textToSpeech } from '@/ai/flows/text-to-speech';
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser();
@@ -20,6 +21,7 @@ export default function HomePage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
   const [isMounted, setIsMounted] = useState(false);
@@ -30,6 +32,7 @@ export default function HomePage() {
 
   useEffect(() => {
     setIsMounted(true);
+    audioRef.current = new Audio();
   }, []);
 
   const userStressRef = useMemoFirebase(() => {
@@ -38,11 +41,24 @@ export default function HomePage() {
   }, [firestore, user]);
 
   const { data: stressData } = useDoc(userStressRef);
+  
+  const playAlertSound = async () => {
+    try {
+      const { audioDataUri } = await textToSpeech("High stress detected. Please consider taking a break.");
+      if (audioRef.current) {
+        audioRef.current.src = audioDataUri;
+        audioRef.current.play();
+      }
+    } catch (error) {
+      console.error("Failed to play alert sound:", error);
+    }
+  };
 
   // Effect to show alert when stress level crosses threshold
   useEffect(() => {
     if (stressData?.stressLevel > 85 && !showAlert) {
       setShowAlert(true);
+      playAlertSound();
     }
   }, [stressData, showAlert]);
 
