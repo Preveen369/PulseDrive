@@ -6,34 +6,20 @@ import { CameraFeed } from '@/components/home/camera-feed';
 import { StressIndicator } from '@/components/home/stress-indicator';
 import { StressAlert } from '@/components/home/stress-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUser, useDoc, useFirestore } from '@/firebase';
-import { doc, setDoc, serverTimestamp, type Firestore } from 'firebase/firestore';
-import { useMemoFirebase } from '@/firebase/use-memo-firebase';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
-
-// Helper function for setting stress data to avoid awaiting and catch errors
-function setStressData(firestore: Firestore, uid: string, data: any) {
-  const stressRef = doc(firestore, 'userStress', uid);
-  setDoc(stressRef, data, { merge: true })
-    .catch((serverError) => {
-      const permissionError = new FirestorePermissionError({
-        path: stressRef.path,
-        operation: 'write',
-        requestResourceData: data,
-      });
-      errorEmitter.emit('permission-error', permissionError);
-    });
-}
-
+import { useUser, useDoc, useFirestore, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { doc, serverTimestamp, type Firestore, collection } from 'firebase/firestore';
 
 export default function HomePage() {
-  const { user, isLoading } = useUser();
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
   const userStressRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    return doc(firestore, 'userStress', user.uid);
+    // Note: The path is now 'users/{userId}/stress_data/{docId}'
+    // For a real app, you'd likely have a specific document ID or query.
+    // Here, we'll use the user's UID as the document ID for simplicity,
+    // assuming one stress document per user in a 'live' collection.
+    return doc(firestore, `users/${user.uid}/stress_data`, 'live');
   }, [firestore, user]);
 
   const { data: stressData } = useDoc(userStressRef);
@@ -51,18 +37,24 @@ export default function HomePage() {
   // Simulate real-time stress data and write to Firestore
   useEffect(() => {
     if (!user || !firestore) return;
-
+    
+    const liveStressRef = doc(firestore, `users/${user.uid}/stress_data`, 'live');
+    
     const interval = setInterval(() => {
-      setStressData(firestore, user.uid, {
-        stressLevel: Math.floor(Math.random() * 101),
-        lastUpdated: serverTimestamp()
-      });
+      const newStressLevel = Math.floor(Math.random() * 101);
+      
+      setDocumentNonBlocking(liveStressRef, {
+        stressLevel: newStressLevel,
+        timestamp: serverTimestamp(),
+        userId: user.uid, // Denormalize for security rules
+      }, { merge: true });
+
     }, 2000);
 
     return () => clearInterval(interval);
   }, [user, firestore]);
 
-  if (isLoading) {
+  if (isUserLoading) {
     return <AppShell><div>Loading...</div></AppShell>;
   }
   

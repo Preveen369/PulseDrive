@@ -7,8 +7,8 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from '@/components/ui/chart';
-import { useCollection, useFirestore, useUser } from '@/firebase';
-import { collection, query, where, limit, orderBy } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { collection, query, limit, orderBy } from 'firebase/firestore';
 import { useMemo } from 'react';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
@@ -24,11 +24,10 @@ export function WeeklyTrendsChart() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  const stressHistoryQuery = useMemo(() => {
+  const stressHistoryQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(
-      collection(firestore, 'stressHistory'),
-      where('userId', '==', user.uid),
+      collection(firestore, `users/${user.uid}/stress_data`),
       orderBy('timestamp', 'desc'),
       limit(7)
     );

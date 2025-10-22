@@ -2,10 +2,10 @@
 
 import { personalizedStressReductionTips } from '@/ai/flows/personalized-stress-reduction-tips';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { Lightbulb, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { collection, limit, query, where } from 'firebase/firestore';
+import { collection, limit, query, orderBy } from 'firebase/firestore';
 
 export function TipsSection() {
   const { user } = useUser();
@@ -13,11 +13,14 @@ export function TipsSection() {
   const [tips, setTips] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const stressHistoryQuery = firestore && user ? query(
-    collection(firestore, 'stressHistory'),
-    where('userId', '==', user.uid),
-    limit(7)
-  ) : null;
+  const stressHistoryQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return query(
+      collection(firestore, `users/${user.uid}/stress_data`),
+      orderBy('timestamp', 'desc'),
+      limit(7)
+    );
+  },[firestore, user]);
 
   const { data: stressHistory, isLoading: isLoadingHistory } = useCollection(stressHistoryQuery);
   
