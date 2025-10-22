@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { AverageStressScore } from '@/components/dashboard/average-stress-score';
 import { LiveHeartRateCard } from '@/components/dashboard/live-heart-rate-card';
+import { LiveFatigueStatusCard } from '@/components/dashboard/live-fatigue-status-card';
 
 export default function DashboardPage() {
   return (
@@ -14,13 +15,10 @@ export default function DashboardPage() {
         <h2 className="text-2xl font-bold tracking-tight font-headline">
           Weekly Dashboard
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className='md:col-span-1 lg:col-span-2'>
-              <AverageStressScore />
-            </div>
-             <div className='md:col-span-1 lg:col-span-2'>
-              <LiveHeartRateCard />
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <AverageStressScore />
+            <LiveHeartRateCard />
+            <LiveFatigueStatusCard />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
