@@ -207,6 +207,11 @@ const MeditationGuide = () => {
   };
 
 export default function MyActivitiesPage() {
+  const playlists = [
+    { id: "37i9dQZF1DX4sWSpwq3LiO", title: "Peaceful Piano" },
+    { id: "37i9dQZF1DWUvQoIOFMFUT", title: "Stress Relief" },
+    { id: "37i9dQZF1DX3Ogo9pFv5Le", title: "Ambient Relaxation" },
+  ];
   return (
     <AppShell>
       <div className="space-y-6">
@@ -218,17 +223,29 @@ export default function MyActivitiesPage() {
             <MeditationGuide />
         </div>
         <Card>
-            <CardHeader>
-                <CardTitle className='flex items-center gap-2'><Music /> Calming Music</CardTitle>
-                <CardDescription>Listen to a curated playlist to help you relax and de-stress.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button asChild size="lg" className='w-full md:w-auto'>
-                    <Link href="https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO" target="_blank">
-                        Open Spotify Playlist
-                    </Link>
-                </Button>
-            </CardContent>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Music /> Calming Music
+            </CardTitle>
+            <CardDescription>
+              Listen to curated playlists to help you relax and de-stress.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {playlists.map((playlist) => (
+              <iframe
+                key={playlist.id}
+                className="rounded-xl"
+                src={`https://open.spotify.com/embed/playlist/${playlist.id}?utm_source=generator&theme=0`}
+                width="100%"
+                height="352"
+                frameBorder="0"
+                allowFullScreen={true}
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+              ></iframe>
+            ))}
+          </CardContent>
         </Card>
       </div>
     </AppShell>
