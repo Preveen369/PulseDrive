@@ -7,9 +7,8 @@ import { StressIndicator } from '@/components/home/stress-indicator';
 import { StressAlert } from '@/components/home/stress-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { doc, serverTimestamp } from 'firebase/firestore';
+import { useUser, useDoc, useFirestore, useMemoFirebase, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, doc, serverTimestamp } from 'firebase/firestore';
 import { getStressLevelFromImage } from '@/ai/flows/stress-level-from-image';
 import { Play, Square, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -37,12 +36,12 @@ export default function HomePage() {
     audioRef.current = new Audio();
   }, []);
 
-  const userStressRef = useMemoFirebase(() => {
+  const userLiveStressRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return doc(firestore, `users/${user.uid}/stress_data`, 'live');
   }, [firestore, user]);
 
-  const { data: stressData } = useDoc(userStressRef);
+  const { data: stressData } = useDoc(userLiveStressRef);
   
   const playAlertSound = async () => {
     try {
@@ -71,6 +70,7 @@ export default function HomePage() {
     }
 
     const liveStressRef = doc(firestore, `users/${user.uid}/stress_data`, 'live');
+    const stressHistoryCollectionRef = collection(firestore, `users/${user.uid}/stress_data`);
 
     const interval = setInterval(async () => {
       if (videoRef.current && !videoRef.current.paused && canvasRef.current && videoRef.current.readyState >= 3) {
@@ -87,13 +87,19 @@ export default function HomePage() {
           try {
             const { stressLevel, heartRate, fatigueStatus } = await getStressLevelFromImage({ frameDataUri });
             
-            setDocumentNonBlocking(liveStressRef, {
+            const newStressData = {
               stressLevel,
               heartRate,
               fatigueStatus,
               timestamp: serverTimestamp(),
               userId: user.uid,
-            }, { merge: true });
+            };
+
+            // Update the 'live' document for real-time indicators
+            setDocumentNonBlocking(liveStressRef, newStressData, { merge: true });
+            
+            // Add a new document to the history collection
+            addDocumentNonBlocking(stressHistoryCollectionRef, newStressData);
 
           } catch (error) {
             console.error("Error analyzing stress from frame:", error);
@@ -142,11 +148,6 @@ export default function HomePage() {
     }
     if (videoRef.current) {
       videoRef.current.srcObject = null;
-    }
-    // Reset stress level in firestore
-    if (user && firestore) {
-      const liveStressRef = doc(firestore, `users/${user.uid}/stress_data`, 'live');
-      setDocumentNonBlocking(liveStressRef, { stressLevel: 0, heartRate: 0, fatigueStatus: 'active', timestamp: serverTimestamp() }, { merge: true });
     }
   };
   

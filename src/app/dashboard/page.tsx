@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AverageStressScore } from '@/components/dashboard/average-stress-score';
-import { HeartRateCard } from '@/components/dashboard/heart-rate-card';
+import { LiveHeartRateCard } from '@/components/dashboard/live-heart-rate-card';
 
 export default function DashboardPage() {
   return (
@@ -19,7 +19,7 @@ export default function DashboardPage() {
               <AverageStressScore />
             </div>
              <div className='md:col-span-1 lg:col-span-2'>
-              <HeartRateCard />
+              <LiveHeartRateCard />
             </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

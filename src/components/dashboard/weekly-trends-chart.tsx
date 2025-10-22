@@ -29,19 +29,36 @@ export function WeeklyTrendsChart() {
     return query(
       collection(firestore, `users/${user.uid}/stress_data`),
       orderBy('timestamp', 'desc'),
-      limit(7)
+      limit(50) // Fetch more data for a better trend line
     );
   }, [firestore, user]);
 
   const { data: stressHistory, isLoading } = useCollection(stressHistoryQuery);
+  const historicalData = useMemo(() => stressHistory?.filter(d => d.id !== 'live'), [stressHistory]);
   
   const chartData = useMemo(() => {
-    if (!stressHistory) return [];
-    return stressHistory.map(item => ({
-      day: item.timestamp ? format(item.timestamp.toDate(), 'eee') : 'N/A',
-      stress: item.stressLevel,
-    })).reverse();
-  }, [stressHistory]);
+    if (!historicalData || historicalData.length === 0) return [];
+    // Aggregate data by day, taking the average stress level for each day.
+    const dailyAverages = historicalData.reduce((acc, item) => {
+      if (!item.timestamp) return acc;
+      const day = format(item.timestamp.toDate(), 'eee');
+      if (!acc[day]) {
+        acc[day] = { day, totalStress: 0, count: 0 };
+      }
+      acc[day].totalStress += item.stressLevel;
+      acc[day].count++;
+      return acc;
+    }, {} as Record<string, {day: string, totalStress: number, count: number}>);
+
+    const orderedDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    return orderedDays.map(day => {
+       if (dailyAverages[day]) {
+         return { day, stress: Math.round(dailyAverages[day].totalStress / dailyAverages[day].count) };
+       }
+       return { day, stress: undefined }; // Use undefined for days with no data
+    });
+  }, [historicalData]);
 
 
   if (isLoading) {
@@ -49,6 +66,15 @@ export function WeeklyTrendsChart() {
       <div className="flex items-center justify-center min-h-[200px] w-full">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  if (chartData.length === 0) {
+    return (
+        <div className="flex flex-col items-center justify-center min-h-[200px] w-full text-center">
+            <p className="text-muted-foreground">No historical data to display.</p>
+            <p className="text-xs text-muted-foreground">Complete a few analysis sessions to see your trends.</p>
+        </div>
     );
   }
 
@@ -85,6 +111,7 @@ export function WeeklyTrendsChart() {
           activeDot={{
             r: 6,
           }}
+          connectNulls // This will connect lines across points with no data
         />
       </LineChart>
     </ChartContainer>
