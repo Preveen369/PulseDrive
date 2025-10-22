@@ -45,6 +45,7 @@ export default function HomePage() {
   const [showFatigueAlert, setShowFatigueAlert] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [liveData, setLiveData] = useState<LiveStressData>(defaultStressData);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -58,14 +59,23 @@ export default function HomePage() {
   }, [user]);
 
   const playAlertSound = async (text: string) => {
+    if (isAudioPlaying) return;
     try {
+      setIsAudioPlaying(true);
       const { audioDataUri } = await textToSpeech(text);
       if (audioRef.current) {
         audioRef.current.src = audioDataUri;
+        audioRef.current.volume = 1.0; // Set volume to maximum
         audioRef.current.play();
+        audioRef.current.onended = () => {
+          setIsAudioPlaying(false);
+        };
+      } else {
+        setIsAudioPlaying(false);
       }
     } catch (error) {
       console.error("Failed to play alert sound:", error);
+      setIsAudioPlaying(false);
     }
   };
 
