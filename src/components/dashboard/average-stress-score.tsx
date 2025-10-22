@@ -1,7 +1,7 @@
 'use client';
 
-import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, limit, orderBy } from 'firebase/firestore';
+import { useCollection, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { collection, query, limit, orderBy, doc } from 'firebase/firestore';
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
@@ -12,6 +12,7 @@ export function AverageStressScore() {
 
   const stressHistoryQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
+    // Fetch recent history, not including the 'live' document
     return query(
       collection(firestore, `users/${user.uid}/stress_data`),
       orderBy('timestamp', 'desc'),
@@ -19,14 +20,29 @@ export function AverageStressScore() {
     );
   }, [firestore, user]);
 
-  const { data: stressHistory, isLoading } = useCollection(stressHistoryQuery);
+  const liveStressRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, `users/${user.uid}/stress_data`, 'live');
+  }, [firestore, user]);
+
+  const { data: stressHistory, isLoading: isHistoryLoading } = useCollection(stressHistoryQuery);
+  const { data: liveData, isLoading: isLiveLoading } = useDoc(liveStressRef);
+  
   const historicalData = useMemo(() => stressHistory?.filter(d => d.id !== 'live'), [stressHistory]);
 
   const averageStress = useMemo(() => {
-    if (!historicalData || historicalData.length === 0) return null;
-    const totalStress = historicalData.reduce((acc, item) => acc + item.stressLevel, 0);
-    return Math.round(totalStress / historicalData.length);
-  }, [historicalData]);
+    const allData = [...(historicalData || [])];
+    
+    // Check if liveData exists and is not already in historicalData (based on timestamp)
+    if (liveData && liveData.timestamp && !allData.some(d => d.timestamp?.isEqual(liveData.timestamp))) {
+        allData.push(liveData);
+    }
+    
+    if (allData.length === 0) return null;
+
+    const totalStress = allData.reduce((acc, item) => acc + (item.stressLevel || 0), 0);
+    return Math.round(totalStress / allData.length);
+  }, [historicalData, liveData]);
   
   const getStressColor = (level: number | null) => {
     if (level === null) return 'text-muted-foreground';
@@ -34,6 +50,8 @@ export function AverageStressScore() {
     if (level > 40) return 'text-yellow-400';
     return 'text-green-500';
   };
+  
+  const isLoading = isHistoryLoading || isLiveLoading;
 
   return (
     <Card>
