@@ -1,13 +1,16 @@
 import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { BellRing } from 'lucide-react';
+import { BellRing, Music } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '../ui/button';
 
 type StressAlertProps = {
   open: boolean;
@@ -26,13 +29,19 @@ export function StressAlert({ open, onOpenChange }: StressAlertProps) {
             High Stress Detected
           </AlertDialogTitle>
           <AlertDialogDescription className="text-center">
-            Your stress levels are elevated. Consider taking a short break to ensure your safety and well-being.
+            Your stress levels are elevated. Consider taking a short break or listening to some calming music.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogAction className="w-full" onClick={() => onOpenChange(false)}>
-            Okay
-          </AlertDialogAction>
+        <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+            <AlertDialogAction asChild>
+                <Button onClick={() => onOpenChange(false)} className='w-full'>Okay</Button>
+            </AlertDialogAction>
+            <Button variant="outline" className="w-full" asChild>
+                <Link href="https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO" target="_blank">
+                    <Music className="mr-2 h-4 w-4" />
+                    Play Calming Music
+                </Link>
+            </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
