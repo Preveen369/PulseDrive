@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Music, Wind, BrainCircuit, Play, Pause, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 const BreathingGuide = () => {
@@ -100,12 +100,26 @@ const MeditationGuide = () => {
     const [isActive, setIsActive] = useState(false);
     const [promptIndex, setPromptIndex] = useState(0);
     const [secondsLeft, setSecondsLeft] = useState(60);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
-        if (!isActive || secondsLeft === 0) {
-            setIsActive(false);
+        // Use a pleasant bell sound that is free to use
+        audioRef.current = new Audio('https://actions.google.com/sounds/v1/alarms/medium_bell_ringing_near.ogg');
+        audioRef.current.volume = 0.5;
+    }, []);
+
+    useEffect(() => {
+        if (!isActive) {
             return;
         };
+
+        if (secondsLeft === 0) {
+            setIsActive(false);
+            if(audioRef.current) {
+                audioRef.current.play();
+            }
+            return;
+        }
 
         const timer = setInterval(() => {
             setSecondsLeft(prev => prev -1);
