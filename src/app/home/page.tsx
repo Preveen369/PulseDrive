@@ -175,17 +175,17 @@ export default function HomePage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col items-center gap-4 mb-6">
-        <h2 className="text-2xl font-bold tracking-tight font-headline text-center">
+      <div className="flex flex-row items-center justify-between gap-4 mb-6">
+        <h2 className="text-2xl font-bold tracking-tight font-headline">
           Live Analysis
         </h2>
-        <div className="flex w-full justify-center">
+        <div className="flex justify-end">
           {!isAnalysisRunning ? (
-            <Button onClick={startAnalysis} className="w-full max-w-xs">
+            <Button onClick={startAnalysis}>
               <Play className="mr-2 h-4 w-4" /> Start Analysis
             </Button>
           ) : (
-            <Button onClick={stopAnalysis} variant="destructive" className="w-full max-w-xs">
+            <Button onClick={stopAnalysis} variant="destructive">
               <Square className="mr-2 h-4 w-4" /> Stop Analysis
             </Button>
           )}
