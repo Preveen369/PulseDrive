@@ -52,6 +52,10 @@
           "type": "number",
           "description": "The measured stress level. (Likely a normalized value or index)"
         },
+        "heartRate": {
+          "type": "number",
+          "description": "The measured heart rate in beats per minute (BPM)."
+        },
         "timestamp": {
           "type": "string",
           "description": "Timestamp indicating when the stress level was recorded.",
@@ -62,6 +66,7 @@
         "id",
         "userId",
         "stressLevel",
+        "heartRate",
         "timestamp"
       ]
     },

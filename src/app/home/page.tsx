@@ -83,10 +83,11 @@ export default function HomePage() {
           const frameDataUri = canvas.toDataURL('image/jpeg');
 
           try {
-            const { stressLevel } = await getStressLevelFromImage({ frameDataUri });
+            const { stressLevel, heartRate } = await getStressLevelFromImage({ frameDataUri });
             
             setDocumentNonBlocking(liveStressRef, {
               stressLevel,
+              heartRate,
               timestamp: serverTimestamp(),
               userId: user.uid,
             }, { merge: true });
@@ -142,7 +143,7 @@ export default function HomePage() {
     // Reset stress level in firestore
     if (user && firestore) {
       const liveStressRef = doc(firestore, `users/${user.uid}/stress_data`, 'live');
-      setDocumentNonBlocking(liveStressRef, { stressLevel: 0, timestamp: serverTimestamp() }, { merge: true });
+      setDocumentNonBlocking(liveStressRef, { stressLevel: 0, heartRate: 0, timestamp: serverTimestamp() }, { merge: true });
     }
   };
   

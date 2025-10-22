@@ -1,9 +1,9 @@
 'use server';
 
 /**
- * @fileOverview A Genkit flow for analyzing an image of a person to determine their stress level.
+ * @fileOverview A Genkit flow for analyzing an image of a person to determine their stress level and heart rate.
  *
- * - getStressLevelFromImage - A function that analyzes an image and returns a stress level.
+ * - getStressLevelFromImage - A function that analyzes an image and returns a stress level and heart rate.
  * - StressLevelFromImageInput - The input type for the getStressLevelFromImage function.
  * - StressLevelFromImageOutput - The return type for the getStressLevelFromImage function.
  */
@@ -22,6 +22,7 @@ export type StressLevelFromImageInput = z.infer<typeof StressLevelFromImageInput
 
 const StressLevelFromImageOutputSchema = z.object({
   stressLevel: z.number().describe('A numerical value from 0 to 100 representing the estimated stress level.'),
+  heartRate: z.number().describe('An integer value representing the estimated heart rate in beats per minute (BPM).'),
 });
 export type StressLevelFromImageOutput = z.infer<typeof StressLevelFromImageOutputSchema>;
 
@@ -35,16 +36,19 @@ const stressLevelPrompt = ai.definePrompt({
   name: 'stressLevelPrompt',
   input: {schema: StressLevelFromImageInputSchema},
   output: {schema: StressLevelFromImageOutputSchema},
-  prompt: `You are an expert in psychophysiology and use photoplethysmography (PPG) to remotely estimate a person's stress level from facial video frames.
+  prompt: `You are an expert in psychophysiology and use photoplethysmography (PPG) to remotely estimate a person's stress level and heart rate from facial video frames.
 
-  Analyze the provided image frame of a person's face to estimate their current stress level. Your analysis should consider subtle physiological cues visible in the image, such as:
-  - Heart Rate Variability (HRV) patterns inferred from micro-blushing and skin tone variations.
+  Analyze the provided image frame of a person's face to estimate their current stress level and heart rate. Your analysis should consider subtle physiological cues visible in the image, such as:
+  - Heart Rate Variability (HRV) patterns inferred from micro-blushing and skin tone variations to determine stress.
+  - Heart rate estimated from the frequency of the PPG signal.
   - Facial micro-expressions (e.g., furrowed brow, tightened jaw).
   - Eye metrics (e.g., pupil dilation, blink rate).
 
-  Based on your analysis of the image, output a single numerical value representing the estimated stress level on a scale from 0 (completely relaxed) to 100 (extremely stressed).
+  Based on your analysis of the image, output a JSON object containing:
+  - 'stressLevel': a numerical value from 0 (completely relaxed) to 100 (extremely stressed).
+  - 'heartRate': an integer representing the estimated heart rate in beats per minute (BPM).
 
-  Do not provide any conversational response or explanation. Only return the JSON object with the 'stressLevel' field.
+  Do not provide any conversational response or explanation. Only return the JSON object.
 
   Image to analyze: {{media url=frameDataUri}}
   `,
