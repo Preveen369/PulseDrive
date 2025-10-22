@@ -7,7 +7,8 @@ import { StressIndicator } from '@/components/home/stress-indicator';
 import { StressAlert } from '@/components/home/stress-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useUser, useDoc, useFirestore, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { doc, serverTimestamp } from 'firebase/firestore';
 import { getStressLevelFromImage } from '@/ai/flows/stress-level-from-image';
 import { Play, Square, Loader2 } from 'lucide-react';
@@ -61,7 +62,7 @@ export default function HomePage() {
           try {
             const { stressLevel } = await getStressLevelFromImage({ frameDataUri });
             
-            await setDocumentNonBlocking(liveStressRef, {
+            setDocumentNonBlocking(liveStressRef, {
               stressLevel,
               timestamp: serverTimestamp(),
               userId: user.uid,
@@ -134,7 +135,7 @@ export default function HomePage() {
             Live Analysis
             </h2>
             {!isAnalysisRunning ? (
-                <Button onClick={startAnalysis} disabled={hasCameraPermission === null}>
+                <Button onClick={startAnalysis}>
                     <Play className="mr-2 h-4 w-4" /> Start Analysis
                 </Button>
             ) : (
