@@ -1,0 +1,185 @@
+'use client';
+
+import { AppShell } from '@/components/layout/app-shell';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Music, Wind, BrainCircuit, Play, Pause, RefreshCw } from 'lucide-react';
+import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+
+const BreathingGuide = () => {
+    const steps = [
+      { duration: 4000, text: 'Breathe in...' },
+      { duration: 4000, text: 'Hold' },
+      { duration: 4000, text: 'Breathe out...' },
+      { duration: 4000, text: 'Hold' },
+    ];
+  
+    const [isActive, setIsActive] = useState(false);
+    const [currentStep, setCurrentStep] = useState(0);
+  
+    useEffect(() => {
+      if (!isActive) return;
+  
+      const interval = setInterval(() => {
+        setCurrentStep((prev) => (prev + 1) % steps.length);
+      }, steps[currentStep].duration);
+  
+      return () => clearInterval(interval);
+    }, [isActive, currentStep, steps]);
+
+    const handleStartPause = () => {
+        setIsActive(!isActive);
+    };
+
+    const handleReset = () => {
+        setIsActive(false);
+        setCurrentStep(0);
+    }
+  
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wind /> Guided Breathing
+          </CardTitle>
+          <CardDescription>Follow the prompts to regulate your breathing and calm your mind.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center space-y-6">
+          <div className="relative flex h-48 w-48 items-center justify-center">
+            <div
+              className={cn(
+                'absolute h-full w-full rounded-full bg-primary/20 transition-transform duration-3000 ease-linear',
+                isActive ? 'scale-100' : 'scale-50'
+              )}
+              style={{ animation: isActive ? `pulse ${steps[currentStep].duration}ms infinite ease-in-out` : 'none' }}
+            />
+            <p className="z-10 text-2xl font-semibold text-foreground">
+              {isActive ? steps[currentStep].text : 'Ready?'}
+            </p>
+          </div>
+          <div className="flex gap-4">
+            <Button onClick={handleStartPause} size="lg">
+              {isActive ? <Pause className="mr-2" /> : <Play className="mr-2" />}
+              {isActive ? 'Pause' : 'Start'}
+            </Button>
+            <Button onClick={handleReset} size="lg" variant="outline">
+                <RefreshCw className="mr-2" />
+                Reset
+            </Button>
+          </div>
+          <style jsx>{`
+            @keyframes pulse {
+              0% { transform: scale(0.9); }
+              50% { transform: scale(1); }
+              100% { transform: scale(0.9); }
+            }
+          `}</style>
+        </CardContent>
+      </Card>
+    );
+};
+
+const MeditationGuide = () => {
+    const prompts = [
+      "Find a comfortable, upright position.",
+      "Close your eyes gently.",
+      "Focus on your natural breath.",
+      "Notice the air moving in and out.",
+      "If your mind wanders, gently guide it back.",
+      "Acknowledge thoughts without judgment.",
+      "Feel the weight of your body.",
+      "Be present in this moment.",
+      "Notice sounds around you without attachment.",
+      "Let go of any tension you're holding.",
+      "You are calm and centered.",
+      "Slowly bring your awareness back to the room.",
+    ];
+
+    const [isActive, setIsActive] = useState(false);
+    const [promptIndex, setPromptIndex] = useState(0);
+    const [secondsLeft, setSecondsLeft] = useState(60);
+
+    useEffect(() => {
+        if (!isActive || secondsLeft === 0) {
+            setIsActive(false);
+            return;
+        };
+
+        const timer = setInterval(() => {
+            setSecondsLeft(prev => prev -1);
+        }, 1000);
+
+        const promptInterval = setInterval(() => {
+            setPromptIndex(prev => (prev + 1) % prompts.length);
+        }, 5000);
+
+        return () => {
+            clearInterval(timer);
+            clearInterval(promptInterval);
+        }
+
+    }, [isActive, secondsLeft, prompts.length]);
+
+    const handleStart = () => {
+        setIsActive(true);
+        setSecondsLeft(60);
+        setPromptIndex(0);
+    };
+  
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BrainCircuit /> One-Minute Meditation
+          </CardTitle>
+          <CardDescription>A short session to reset and refocus your mind.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center space-y-6 text-center">
+            <div className='min-h-[100px] flex items-center justify-center'>
+            {isActive ? (
+                <p className="text-xl text-foreground transition-opacity duration-1000">
+                    {prompts[promptIndex]}
+                </p>
+            ) : (
+                <p className="text-xl text-muted-foreground">Press start to begin your meditation.</p>
+            )}
+            </div>
+            {isActive && <p className="text-4xl font-bold text-primary">{secondsLeft}s</p>}
+            <Button onClick={handleStart} disabled={isActive} size="lg">
+                <Play className='mr-2' /> Start Meditation
+            </Button>
+        </CardContent>
+      </Card>
+    );
+  };
+
+export default function MyActivitiesPage() {
+  return (
+    <AppShell>
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold tracking-tight font-headline">
+          My Activities
+        </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <BreathingGuide />
+            <MeditationGuide />
+        </div>
+        <Card>
+            <CardHeader>
+                <CardTitle className='flex items-center gap-2'><Music /> Calming Music</CardTitle>
+                <CardDescription>Listen to a curated playlist to help you relax and de-stress.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button asChild size="lg" className='w-full md:w-auto'>
+                    <Link href="https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO" target="_blank">
+                        Open Spotify Playlist
+                    </Link>
+                </Button>
+            </CardContent>
+        </Card>
+      </div>
+    </AppShell>
+  );
+}

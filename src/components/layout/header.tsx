@@ -1,7 +1,7 @@
 'use client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser } from '@/firebase';
-import { HeartPulse, Home, LayoutDashboard, LogOut } from 'lucide-react';
+import { HeartPulse, Home, LayoutDashboard, LogOut, Smile } from 'lucide-react';
 import { getAuth, signOut } from 'firebase/auth';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { href: '/home', label: 'Home', icon: Home },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/my-activities', label: 'Activities', icon: Smile },
 ];
 
 
