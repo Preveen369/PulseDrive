@@ -71,7 +71,7 @@ export default function HomePage() {
 
   // Effect to show alerts
   useEffect(() => {
-    if (!liveData) return;
+    if (!liveData || !isAnalysisRunning) return;
     
     // Stress alert
     if (liveData.stressLevel > 85 && !showStressAlert) {
@@ -86,7 +86,7 @@ export default function HomePage() {
         playAlertSound("Drowsiness detected. Please pull over and rest now.");
     }
 
-  }, [liveData, showStressAlert, showFatigueAlert]);
+  }, [liveData, showStressAlert, showFatigueAlert, isAnalysisRunning]);
 
   // Effect to capture frames and analyze stress
   useEffect(() => {
@@ -173,6 +173,7 @@ export default function HomePage() {
 
   const stopAnalysis = () => {
     setIsAnalysisRunning(false);
+    setLiveData(defaultStressData); // Reset live data on stop
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
