@@ -1,12 +1,15 @@
 'use client';
-import { useRef, useState, useEffect } from 'react';
+import { useState, useEffect, type RefObject } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Camera, VideoOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
-export function CameraFeed() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+type CameraFeedProps = {
+  videoRef: RefObject<HTMLVideoElement>;
+};
+
+export function CameraFeed({ videoRef }: CameraFeedProps) {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const { toast } = useToast();
 
@@ -49,7 +52,7 @@ export function CameraFeed() {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [toast]);
+  }, [toast, videoRef]);
 
   return (
     <Card>
