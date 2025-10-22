@@ -9,76 +9,82 @@ import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 const BreathingGuide = () => {
-    const steps = [
-      { duration: 4000, text: 'Breathe in...' },
-      { duration: 4000, text: 'Hold' },
-      { duration: 4000, text: 'Breathe out...' },
-      { duration: 4000, text: 'Hold' },
-    ];
-  
-    const [isActive, setIsActive] = useState(false);
-    const [currentStep, setCurrentStep] = useState(0);
-  
-    useEffect(() => {
-      if (!isActive) return;
-  
-      const interval = setInterval(() => {
-        setCurrentStep((prev) => (prev + 1) % steps.length);
-      }, steps[currentStep].duration);
-  
-      return () => clearInterval(interval);
-    }, [isActive, currentStep, steps]);
+  const steps = [
+    { duration: 4000, text: 'Breathe in...', color: 'bg-blue-500/30', textColor: 'text-blue-100' },
+    { duration: 4000, text: 'Hold', color: 'bg-purple-500/30', textColor: 'text-purple-100' },
+    { duration: 4000, text: 'Breathe out...', color: 'bg-green-500/30', textColor: 'text-green-100' },
+    { duration: 4000, text: 'Hold', color: 'bg-purple-500/30', textColor: 'text-purple-100' },
+  ];
 
-    const handleStartPause = () => {
-        setIsActive(!isActive);
-    };
+  const [isActive, setIsActive] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
 
-    const handleReset = () => {
-        setIsActive(false);
-        setCurrentStep(0);
-    }
-  
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wind /> Guided Breathing
-          </CardTitle>
-          <CardDescription>Follow the prompts to regulate your breathing and calm your mind.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center space-y-6">
-          <div className="relative flex h-48 w-48 items-center justify-center">
-            <div
-              className={cn(
-                'absolute h-full w-full rounded-full bg-primary/20 transition-transform duration-3000 ease-linear',
-                isActive ? 'scale-100' : 'scale-50'
-              )}
-              style={{ animation: isActive ? `pulse ${steps[currentStep].duration}ms infinite ease-in-out` : 'none' }}
-            />
-            <p className="z-10 text-2xl font-semibold text-foreground">
-              {isActive ? steps[currentStep].text : 'Ready?'}
-            </p>
-          </div>
-          <div className="flex gap-4">
-            <Button onClick={handleStartPause} size="lg">
-              {isActive ? <Pause className="mr-2" /> : <Play className="mr-2" />}
-              {isActive ? 'Pause' : 'Start'}
-            </Button>
-            <Button onClick={handleReset} size="lg" variant="outline">
-                <RefreshCw className="mr-2" />
-                Reset
-            </Button>
-          </div>
-          <style jsx>{`
-            @keyframes pulse {
-              0% { transform: scale(0.9); }
-              50% { transform: scale(1); }
-              100% { transform: scale(0.9); }
-            }
-          `}</style>
-        </CardContent>
-      </Card>
-    );
+  useEffect(() => {
+    if (!isActive) return;
+
+    const interval = setInterval(() => {
+      setCurrentStep((prev) => (prev + 1) % steps.length);
+    }, steps[currentStep].duration);
+
+    return () => clearInterval(interval);
+  }, [isActive, currentStep]);
+
+  const handleStartPause = () => {
+    setIsActive(!isActive);
+  };
+
+  const handleReset = () => {
+    setIsActive(false);
+    setCurrentStep(0);
+  };
+
+  const currentStyle = steps[currentStep];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Wind /> Guided Breathing
+        </CardTitle>
+        <CardDescription>Follow the prompts to regulate your breathing and calm your mind.</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col items-center justify-center space-y-6">
+        <div className="relative flex h-48 w-48 items-center justify-center">
+          <div
+            className={cn(
+              'absolute h-full w-full rounded-full transition-all duration-1000',
+              isActive ? 'scale-100' : 'scale-50',
+              isActive ? currentStyle.color : 'bg-primary/20'
+            )}
+            style={{ animation: isActive ? `pulse ${steps[currentStep].duration}ms infinite ease-in-out` : 'none' }}
+          />
+          <p className={cn(
+              "z-10 text-2xl font-semibold transition-colors duration-1000",
+              isActive ? currentStyle.textColor : 'text-foreground'
+            )}>
+            {isActive ? steps[currentStep].text : 'Ready?'}
+          </p>
+        </div>
+        <div className="flex gap-4">
+          <Button onClick={handleStartPause} size="lg">
+            {isActive ? <Pause className="mr-2" /> : <Play className="mr-2" />}
+            {isActive ? 'Pause' : 'Start'}
+          </Button>
+          <Button onClick={handleReset} size="lg" variant="outline">
+            <RefreshCw className="mr-2" />
+            Reset
+          </Button>
+        </div>
+        <style jsx>{`
+          @keyframes pulse {
+            0% { transform: scale(0.9); }
+            50% { transform: scale(1); }
+            100% { transform: scale(0.9); }
+          }
+        `}</style>
+      </CardContent>
+    </Card>
+  );
 };
 
 const MeditationGuide = () => {
@@ -104,8 +110,8 @@ const MeditationGuide = () => {
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
-        audioRef.current = new Audio('https://actions.google.com/sounds/v1/alarms/medium_bell_ringing_near.ogg');
-        audioRef.current.volume = 0.5;
+        audioRef.current = new Audio('https://actions.google.com/sounds/v1/alarms/large_bell_ringing_near.ogg');
+        audioRef.current.volume = 1.0;
     }, []);
 
     useEffect(() => {
