@@ -8,7 +8,7 @@ import { StressAlert } from '@/components/home/stress-alert';
 import { FatigueAlert } from '@/components/home/fatigue-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useUser, useDoc, useFirestore, useMemoFirebase, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { collection, doc, serverTimestamp } from 'firebase/firestore';
 import { getStressLevelFromImage } from '@/ai/flows/stress-level-from-image';
 import { Play, Square, Loader2 } from 'lucide-react';
@@ -16,6 +16,18 @@ import { useToast } from '@/hooks/use-toast';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { HeartRateIndicator } from '@/components/home/heart-rate-indicator';
 import { FatigueStatus } from '@/components/home/fatigue-status';
+
+type LiveStressData = {
+  stressLevel: number;
+  heartRate: number;
+  fatigueStatus: 'active' | 'sleepy' | 'fatigue' | 'sleeping';
+};
+
+const defaultStressData: LiveStressData = {
+  stressLevel: 0,
+  heartRate: 0,
+  fatigueStatus: 'active',
+};
 
 export default function HomePage() {
   const { user, isUserLoading } = useUser();
@@ -32,19 +44,19 @@ export default function HomePage() {
   const [showStressAlert, setShowStressAlert] = useState(false);
   const [showFatigueAlert, setShowFatigueAlert] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [liveData, setLiveData] = useState<LiveStressData>(defaultStressData);
 
   useEffect(() => {
     setIsMounted(true);
     audioRef.current = new Audio();
   }, []);
-
-  const userLiveStressRef = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    return doc(firestore, `users/${user.uid}/stress_data`, 'live');
-  }, [firestore, user]);
-
-  const { data: stressData } = useDoc(userLiveStressRef);
   
+  // Reset live data when user changes
+  useEffect(() => {
+    setLiveData(defaultStressData);
+    setIsAnalysisRunning(false);
+  }, [user]);
+
   const playAlertSound = async (text: string) => {
     try {
       const { audioDataUri } = await textToSpeech(text);
@@ -59,22 +71,22 @@ export default function HomePage() {
 
   // Effect to show alerts
   useEffect(() => {
-    if (!stressData) return;
+    if (!liveData) return;
     
     // Stress alert
-    if (stressData.stressLevel > 85 && !showStressAlert) {
+    if (liveData.stressLevel > 85 && !showStressAlert) {
       setShowStressAlert(true);
       playAlertSound("High stress detected. Please consider taking a break.");
     }
     
     // Fatigue alert
     const fatigueStates = ['sleepy', 'fatigue', 'sleeping'];
-    if (fatigueStates.includes(stressData.fatigueStatus) && !showFatigueAlert) {
+    if (fatigueStates.includes(liveData.fatigueStatus) && !showFatigueAlert) {
         setShowFatigueAlert(true);
         playAlertSound("Drowsiness detected. Please pull over and rest now.");
     }
 
-  }, [stressData, showStressAlert, showFatigueAlert]);
+  }, [liveData, showStressAlert, showFatigueAlert]);
 
   // Effect to capture frames and analyze stress
   useEffect(() => {
@@ -104,15 +116,21 @@ export default function HomePage() {
               stressLevel,
               heartRate,
               fatigueStatus,
-              timestamp: serverTimestamp(),
-              userId: user.uid,
             };
 
-            // Update the 'live' document for real-time indicators
-            setDocumentNonBlocking(liveStressRef, newStressData, { merge: true });
+            setLiveData(newStressData);
+
+            const dataForFirestore = {
+              ...newStressData,
+              timestamp: serverTimestamp(),
+              userId: user.uid,
+            }
+
+            // Update the 'live' document for real-time indicators on dashboard
+            setDocumentNonBlocking(liveStressRef, dataForFirestore, { merge: true });
             
             // Add a new document to the history collection
-            addDocumentNonBlocking(stressHistoryCollectionRef, newStressData);
+            addDocumentNonBlocking(stressHistoryCollectionRef, dataForFirestore);
 
           } catch (error) {
             console.error("Error analyzing stress from frame:", error);
@@ -208,7 +226,7 @@ export default function HomePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <StressIndicator stressLevel={stressData?.stressLevel ?? 0} />
+              <StressIndicator stressLevel={liveData?.stressLevel ?? 0} />
             </CardContent>
           </Card>
           <Card>
@@ -219,7 +237,7 @@ export default function HomePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <HeartRateIndicator heartRate={stressData?.heartRate ?? 0} />
+              <HeartRateIndicator heartRate={liveData?.heartRate ?? 0} />
             </CardContent>
           </Card>
           <Card>
@@ -230,7 +248,7 @@ export default function HomePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <FatigueStatus fatigueStatus={stressData?.fatigueStatus ?? 'active'} />
+              <FatigueStatus fatigueStatus={liveData?.fatigueStatus ?? 'active'} />
             </CardContent>
           </Card>
         </div>
