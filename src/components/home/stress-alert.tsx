@@ -31,10 +31,10 @@ export function StressAlert({ open, onOpenChange }: StressAlertProps) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="flex-col-reverse sm:flex-col-reverse gap-2">
-          <AlertDialogAction className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => onOpenChange(false)}>
+          <AlertDialogAction className="w-full" onClick={() => onOpenChange(false)}>
             <Coffee /> Take a Break
           </AlertDialogAction>
-          <AlertDialogAction className="w-full" onClick={() => onOpenChange(false)}>
+          <AlertDialogAction className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => onOpenChange(false)}>
             <Wind /> Breathing Exercise
           </AlertDialogAction>
           <AlertDialogCancel className="w-full mt-0" onClick={() => onOpenChange(false)}>

@@ -1,11 +1,8 @@
-export const weeklyStressData = [
-  { day: 'Mon', stress: 30 },
-  { day: 'Tue', stress: 45 },
-  { day: 'Wed', stress: 40 },
-  { day: 'Thu', stress: 60 },
-  { day: 'Fri', stress: 75 },
-  { day: 'Sat', stress: 50 },
-  { day: 'Sun', stress: 25 },
-];
+// This file is no longer used for static data, but can be kept for type definitions or future use.
 
-export type WeeklyStressData = typeof weeklyStressData;
+export type StressDataPoint = {
+  day: string;
+  stress: number;
+};
+
+export type WeeklyStressData = StressDataPoint[];

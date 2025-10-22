@@ -8,26 +8,26 @@ body {
 
 @layer base {
   :root {
-    --background: 217 91% 95%; /* #E8F0FE */
-    --foreground: 221 44% 21%;
-    --card: 217 91% 99%;
-    --card-foreground: 221 44% 21%;
-    --popover: 217 91% 99%;
-    --popover-foreground: 221 44% 21%;
-    --primary: 221 44% 41%; /* #3B5998 */
-    --primary-foreground: 210 40% 98%;
-    --secondary: 217 50% 90%;
-    --secondary-foreground: 221 44% 31%;
-    --muted: 217 50% 90%;
-    --muted-foreground: 221 44% 45%;
-    --accent: 147 71% 55%; /* #3DDC84 */
-    --accent-foreground: 147 71% 15%;
-    --destructive: 0 84.2% 60.2%;
+    --background: 221 40% 10%;
+    --foreground: 217 91% 95%;
+    --card: 221 40% 12%;
+    --card-foreground: 217 91% 95%;
+    --popover: 221 40% 12%;
+    --popover-foreground: 217 91% 95%;
+    --primary: 210 90% 60%; /* A nice blue */
+    --primary-foreground: 221 44% 21%;
+    --secondary: 221 40% 20%;
+    --secondary-foreground: 217 91% 95%;
+    --muted: 221 40% 20%;
+    --muted-foreground: 217 50% 70%;
+    --accent: 210 90% 60%; /* Using same as primary for consistency in dark mode */
+    --accent-foreground: 221 44% 21%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: 217 30% 88%;
-    --input: 217 30% 91%;
-    --ring: 147 71% 55%;
-    --chart-1: 12 76% 61%;
+    --border: 221 40% 25%;
+    --input: 221 40% 22%;
+    --ring: 210 90% 60%;
+    --chart-1: 210 90% 50%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
@@ -41,19 +41,19 @@ body {
     --card-foreground: 217 91% 95%;
     --popover: 221 40% 12%;
     --popover-foreground: 217 91% 95%;
-    --primary: 217 91% 95%;
-    --primary-foreground: 221 44% 41%;
+    --primary: 210 90% 60%;
+    --primary-foreground: 221 44% 21%;
     --secondary: 221 40% 20%;
     --secondary-foreground: 217 91% 95%;
     --muted: 221 40% 20%;
     --muted-foreground: 217 50% 70%;
-    --accent: 147 71% 55%;
-    --accent-foreground: 147 71% 15%;
-    --destructive: 0 62.8% 30.6%;
+    --accent: 210 90% 60%;
+    --accent-foreground: 221 44% 21%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
     --border: 221 40% 25%;
     --input: 221 40% 22%;
-    --ring: 147 71% 55%;
+    --ring: 210 90% 60%;
   }
 }
 
@@ -62,6 +62,6 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-muted/50 text-foreground;
+    @apply bg-background text-foreground;
   }
 }

@@ -1,6 +1,5 @@
 'use client';
 
-import { TrendingUp } from 'lucide-react';
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import {
   ChartContainer,
@@ -8,11 +7,11 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from '@/components/ui/chart';
-import type { WeeklyStressData } from '@/lib/data';
-
-type WeeklyTrendsChartProps = {
-  data: WeeklyStressData;
-};
+import { useCollection, useFirestore, useUser } from '@/firebase';
+import { collection, query, where, limit, orderBy } from 'firebase/firestore';
+import { useMemo } from 'react';
+import { format } from 'date-fns';
+import { Loader2 } from 'lucide-react';
 
 const chartConfig = {
   stress: {
@@ -21,12 +20,44 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function WeeklyTrendsChart({ data }: WeeklyTrendsChartProps) {
+export function WeeklyTrendsChart() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const stressHistoryQuery = useMemo(() => {
+    if (!firestore || !user) return null;
+    return query(
+      collection(firestore, 'stressHistory'),
+      where('userId', '==', user.uid),
+      orderBy('timestamp', 'desc'),
+      limit(7)
+    );
+  }, [firestore, user]);
+
+  const { data: stressHistory, isLoading } = useCollection(stressHistoryQuery);
+  
+  const chartData = useMemo(() => {
+    if (!stressHistory) return [];
+    return stressHistory.map(item => ({
+      day: item.timestamp ? format(item.timestamp.toDate(), 'eee') : 'N/A',
+      stress: item.stressLevel,
+    })).reverse();
+  }, [stressHistory]);
+
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px] w-full">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
       <LineChart
         accessibilityLayer
-        data={data}
+        data={chartData}
         margin={{
           left: -20,
           right: 12,
@@ -39,7 +70,6 @@ export function WeeklyTrendsChart({ data }: WeeklyTrendsChartProps) {
           tickLine={false}
           axisLine={false}
           tickMargin={8}
-          tickFormatter={(value) => value.slice(0, 3)}
         />
         <ChartTooltip
           cursor={false}

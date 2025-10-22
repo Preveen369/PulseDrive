@@ -1,10 +1,25 @@
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+'use client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { HeartPulse } from 'lucide-react';
+import { useUser } from '@/firebase';
+import { HeartPulse, LogOut } from 'lucide-react';
+import { getAuth, signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export function Header() {
-  const userAvatar = PlaceHolderImages.find(p => p.id === 'user-avatar');
+  const { user, isLoading } = useUser();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const auth = getAuth();
+    await signOut(auth);
+    router.push('/');
+  };
 
   return (
     <header className="flex items-center justify-between border-b p-4">
@@ -14,16 +29,31 @@ export function Header() {
           PulseDrive
         </h1>
       </div>
-      <Avatar>
-        {userAvatar && (
-          <AvatarImage
-            src={userAvatar.imageUrl}
-            alt={userAvatar.description}
-            data-ai-hint={userAvatar.imageHint}
-          />
-        )}
-        <AvatarFallback>U</AvatarFallback>
-      </Avatar>
+      {!isLoading && user && (
+         <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Avatar>
+              {user.photoURL ? (
+                <AvatarImage
+                  src={user.photoURL}
+                  alt={user.displayName || 'User Avatar'}
+                />
+              ) : null}
+              <AvatarFallback>
+                {user.displayName
+                  ? user.displayName.charAt(0).toUpperCase()
+                  : user.email!.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </header>
   );
 }

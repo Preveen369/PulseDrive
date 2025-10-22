@@ -1,7 +1,6 @@
 import { AppShell } from '@/components/layout/app-shell';
 import { TipsSection } from '@/components/dashboard/tips-section';
 import { WeeklyTrendsChart } from '@/components/dashboard/weekly-trends-chart';
-import { weeklyStressData } from '@/lib/data';
 import { Suspense } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,7 +21,7 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <WeeklyTrendsChart data={weeklyStressData} />
+            <WeeklyTrendsChart />
           </CardContent>
         </Card>
 

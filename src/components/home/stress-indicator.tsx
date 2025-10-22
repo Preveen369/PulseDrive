@@ -11,14 +11,14 @@ export function StressIndicator({ stressLevel }: StressIndicatorProps) {
 
   const getStressColor = (level: number) => {
     if (level > 75) return 'text-destructive'; // Red
-    if (level > 40) return 'text-yellow-500'; // Yellow
-    return 'text-accent'; // Green
+    if (level > 40) return 'text-yellow-400'; // Yellow
+    return 'text-green-500'; // Green
   };
   
   const getStressRingColor = (level: number) => {
     if (level > 75) return 'stroke-destructive'; // Red
-    if (level > 40) return 'stroke-yellow-500'; // Yellow
-    return 'stroke-accent'; // Green
+    if (level > 40) return 'stroke-yellow-400'; // Yellow
+    return 'stroke-green-500'; // Green
   }
 
   const getStressLabel = (level: number) => {
