@@ -12,7 +12,6 @@ export function AverageStressScore() {
 
   const stressHistoryQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
-    // Query the main collection, excluding the 'live' document.
     return query(
       collection(firestore, `users/${user.uid}/stress_data`),
       orderBy('timestamp', 'desc'),
@@ -20,10 +19,8 @@ export function AverageStressScore() {
     );
   }, [firestore, user]);
 
-  // We filter out the 'live' document on the client-side
   const { data: stressHistory, isLoading } = useCollection(stressHistoryQuery);
   const historicalData = useMemo(() => stressHistory?.filter(d => d.id !== 'live'), [stressHistory]);
-
 
   const averageStress = useMemo(() => {
     if (!historicalData || historicalData.length === 0) return null;

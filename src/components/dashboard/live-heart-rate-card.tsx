@@ -9,7 +9,6 @@ export function LiveHeartRateCard() {
   const { user } = useUser();
   const firestore = useFirestore();
 
-  // This ref points to the 'live' document, which is updated by the home page analysis.
   const liveStressRef = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return doc(firestore, `users/${user.uid}/stress_data`, 'live');
@@ -17,7 +16,6 @@ export function LiveHeartRateCard() {
 
   const { data: liveData, isLoading } = useDoc(liveStressRef);
   
-  // Use the heart rate from the live document, or show '--' if not available.
   const heartRate = liveData?.heartRate;
 
   return (

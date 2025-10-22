@@ -43,9 +43,8 @@ export function LiveFatigueStatusCard() {
   const { data: liveData, isLoading } = useDoc(liveStressRef);
 
   const fatigueStatus = liveData?.fatigueStatus as keyof typeof statusConfig | undefined;
-  const currentStatus = statusConfig[fatigueStatus || 'active'];
-  const Icon = currentStatus?.icon || Smile;
-
+  const currentStatus = fatigueStatus ? statusConfig[fatigueStatus] : null;
+  
   return (
     <Card>
       <CardHeader>
@@ -53,13 +52,13 @@ export function LiveFatigueStatusCard() {
         <CardDescription>Your most recently detected state.</CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading && fatigueStatus === undefined ? (
+        {isLoading && !fatigueStatus ? (
           <div className="flex items-center justify-center h-24">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
-        ) : fatigueStatus !== undefined ? (
+        ) : currentStatus ? (
           <div className="flex items-center justify-center">
-            <Icon className={cn('w-12 h-12 mr-4', currentStatus.color)} />
+            <currentStatus.icon className={cn('w-12 h-12 mr-4', currentStatus.color)} />
             <p className={cn('text-5xl font-bold font-headline', currentStatus.color)}>
               {currentStatus.label}
             </p>
