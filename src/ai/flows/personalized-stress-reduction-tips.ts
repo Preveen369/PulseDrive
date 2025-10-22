@@ -37,15 +37,14 @@ const stressReductionTipsPrompt = ai.definePrompt({
   name: 'stressReductionTipsPrompt',
   input: {schema: PersonalizedStressReductionTipsInputSchema},
   output: {schema: PersonalizedStressReductionTipsOutputSchema},
-  prompt: `You are an AI assistant designed to provide personalized stress reduction tips to drivers based on their weekly stress trends.
-
-  Analyze the following weekly stress data and provide a list of actionable tips to help the driver reduce stress and improve their driving experience. Make sure the tips are different, and not redundant.
-
-  Weekly Stress Data: {{{weeklyStressData}}}
-
-  Consider factors such as driving duration, stress levels during different times of the week, and any patterns in the data.
-  The tips should be concise and easy to understand. Do not give any conversational replies, only return the JSON array of tips.
-  Format the output as a JSON array of strings.`,
+  prompt: `You are an AI assistant providing simple, actionable stress reduction tips for a driver. 
+  
+  Based on the following stress data, provide a few short, easy-to-understand tips.
+  
+  Data: {{{weeklyStressData}}}
+  
+  Keep the tips concise and direct. Focus on simple actions the user can take.
+  Return only a JSON array of tip strings.`,
 });
 
 const personalizedStressReductionTipsFlow = ai.defineFlow(
