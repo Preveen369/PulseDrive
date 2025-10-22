@@ -1,15 +1,13 @@
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { BellRing, Coffee, Wind, Music } from 'lucide-react';
+import { BellRing } from 'lucide-react';
 
 type StressAlertProps = {
   open: boolean;
@@ -17,16 +15,6 @@ type StressAlertProps = {
 };
 
 export function StressAlert({ open, onOpenChange }: StressAlertProps) {
-  const { toast } = useToast();
-
-  const handlePlayMusic = () => {
-    toast({
-      title: "Feature Coming Soon!",
-      description: "The relaxing music feature is currently under development.",
-    });
-    onOpenChange(false);
-  }
-
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -41,19 +29,10 @@ export function StressAlert({ open, onOpenChange }: StressAlertProps) {
             Your stress levels are elevated. Consider taking a short break to ensure your safety and well-being.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex-col-reverse sm:flex-col-reverse gap-2">
+        <AlertDialogFooter>
           <AlertDialogAction className="w-full" onClick={() => onOpenChange(false)}>
-            <Coffee /> Take a Break
+            Okay
           </AlertDialogAction>
-          <AlertDialogAction className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => onOpenChange(false)}>
-            <Wind /> Breathing Exercise
-          </AlertDialogAction>
-           <AlertDialogAction className="w-full" variant="secondary" onClick={handlePlayMusic}>
-            <Music /> Play Relaxing Music
-          </AlertDialogAction>
-          <AlertDialogCancel className="w-full mt-0" onClick={() => onOpenChange(false)}>
-            Dismiss
-          </AlertDialogCancel>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

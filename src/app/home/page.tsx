@@ -162,64 +162,66 @@ export default function HomePage() {
 
   return (
     <AppShell>
-        <div className="flex flex-col-reverse md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <h2 className="text-2xl font-bold tracking-tight font-headline">
-            Live Analysis
-            </h2>
-            {!isAnalysisRunning ? (
-                <Button onClick={startAnalysis} className="w-full md:w-auto">
-                    <Play className="mr-2 h-4 w-4" /> Start Analysis
-                </Button>
-            ) : (
-                <Button onClick={stopAnalysis} variant="destructive" className="w-full md:w-auto">
-                    <Square className="mr-2 h-4 w-4" /> Stop Analysis
-                </Button>
-            )}
+      <div className="flex flex-col items-center gap-4 mb-6">
+        <h2 className="text-2xl font-bold tracking-tight font-headline text-center">
+          Live Analysis
+        </h2>
+        <div className="flex w-full justify-center">
+          {!isAnalysisRunning ? (
+            <Button onClick={startAnalysis} className="w-full max-w-xs">
+              <Play className="mr-2 h-4 w-4" /> Start Analysis
+            </Button>
+          ) : (
+            <Button onClick={stopAnalysis} variant="destructive" className="w-full max-w-xs">
+              <Square className="mr-2 h-4 w-4" /> Stop Analysis
+            </Button>
+          )}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-                <CameraFeed 
-                    videoRef={videoRef} 
-                    isAnalysisRunning={isAnalysisRunning}
-                    hasCameraPermission={hasCameraPermission}
-                />
-            </div>
-            <div className="lg:col-span-1 space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg font-medium flex items-center justify-between">
-                        <span>Real-time Stress Level</span>
-                        {isProcessing && <Loader2 className="h-5 w-5 animate-spin" />}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <StressIndicator stressLevel={stressData?.stressLevel ?? 0} />
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg font-medium flex items-center justify-between">
-                        <span>Real-time Heart Rate</span>
-                         {isProcessing && <Loader2 className="h-5 w-5 animate-spin" />}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <HeartRateIndicator heartRate={stressData?.heartRate ?? 0} />
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="text-lg font-medium flex items-center justify-between">
-                        <span>Fatigue Status</span>
-                         {isProcessing && <Loader2 className="h-5 w-5 animate-spin" />}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <FatigueStatus fatigueStatus={stressData?.fatigueStatus ?? 'active'} />
-                    </CardContent>
-                </Card>
-            </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <CameraFeed 
+            videoRef={videoRef} 
+            isAnalysisRunning={isAnalysisRunning}
+            hasCameraPermission={hasCameraPermission}
+          />
         </div>
+        <div className="lg:col-span-1 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-medium flex items-center justify-between">
+                <span>Real-time Stress Level</span>
+                {isProcessing && <Loader2 className="h-5 w-5 animate-spin" />}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <StressIndicator stressLevel={stressData?.stressLevel ?? 0} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-medium flex items-center justify-between">
+                <span>Real-time Heart Rate</span>
+                {isProcessing && <Loader2 className="h-5 w-5 animate-spin" />}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <HeartRateIndicator heartRate={stressData?.heartRate ?? 0} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-medium flex items-center justify-between">
+                <span>Fatigue Status</span>
+                {isProcessing && <Loader2 className="h-5 w-5 animate-spin" />}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FatigueStatus fatigueStatus={stressData?.fatigueStatus ?? 'active'} />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
       <StressAlert open={showAlert} onOpenChange={setShowAlert} />
       <canvas ref={canvasRef} className="hidden"></canvas>
     </AppShell>
