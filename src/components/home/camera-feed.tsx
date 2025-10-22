@@ -98,7 +98,7 @@ export function CameraFeed({ videoRef, isAnalysisRunning, hasCameraPermission }:
 
   return (
     <Card className="h-full">
-      <CardContent className="relative aspect-video p-0 overflow-hidden bg-secondary">
+      <CardContent className="relative aspect-[4/3] md:aspect-video p-0 overflow-hidden bg-secondary">
         <video 
           ref={videoRef} 
           className="w-full h-full object-cover" 
