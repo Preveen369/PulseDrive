@@ -14,6 +14,11 @@ type CameraFeedProps = {
 export function CameraFeed({ videoRef, isAnalysisRunning, hasCameraPermission }: CameraFeedProps) {
   const [isPaused, setIsPaused] = useState(false);
   const { toast } = useToast();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -53,6 +58,7 @@ export function CameraFeed({ videoRef, isAnalysisRunning, hasCameraPermission }:
   };
 
   const renderOverlay = () => {
+    if (!isMounted) return null;
     if (!isAnalysisRunning) {
       return (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 text-white p-4">
@@ -91,8 +97,8 @@ export function CameraFeed({ videoRef, isAnalysisRunning, hasCameraPermission }:
 
 
   return (
-    <Card>
-      <CardContent className="relative aspect-[3/4] p-0 overflow-hidden bg-secondary">
+    <Card className="h-full">
+      <CardContent className="relative aspect-video lg:aspect-auto lg:h-full p-0 overflow-hidden bg-secondary">
         <video 
           ref={videoRef} 
           className="w-full h-full object-cover" 

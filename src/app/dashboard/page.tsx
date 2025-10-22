@@ -12,22 +12,26 @@ export default function DashboardPage() {
         <h2 className="text-2xl font-bold tracking-tight font-headline">
           Weekly Dashboard
         </h2>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Stress Trends</CardTitle>
-            <CardDescription>
-              Your stress levels over the past week.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <WeeklyTrendsChart />
-          </CardContent>
-        </Card>
-
-        <Suspense fallback={<TipsLoadingSkeleton />}>
-          <TipsSection />
-        </Suspense>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Stress Trends</CardTitle>
+                        <CardDescription>
+                        Your stress levels over the past week.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <WeeklyTrendsChart />
+                    </CardContent>
+                </Card>
+            </div>
+            <div className='lg:col-span-1'>
+                <Suspense fallback={<TipsLoadingSkeleton />}>
+                <TipsSection />
+                </Suspense>
+            </div>
+        </div>
       </div>
     </AppShell>
   );
