@@ -212,6 +212,8 @@ export default function MyActivitiesPage() {
     { id: "0sXCOLjexzGdhto9ORY301", title: "Spanish Flamenco Guitar" },
     { id: "37i9dQZF1DZ06evO0bCLUR", title: "This is Kristian Xhaferaj" },
     { id: "37i9dQZF1E8MdW1iZVNLiL", title: "Beats of traditional Japanese instruments,vol.3 Radio" },
+    { id: "6cTHO34HVJ2Caw3GeCe660", title: "The Best Of Harris Jayaraj" },
+    { id: "37i9dQZF1DZ06evO4a7K5G", title: "This Is Yanni" },
   ];
   return (
     <AppShell>
