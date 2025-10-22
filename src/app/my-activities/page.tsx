@@ -209,8 +209,8 @@ const MeditationGuide = () => {
 export default function MyActivitiesPage() {
   const playlists = [
     { id: "37i9dQZF1DX4sWSpwq3LiO", title: "Peaceful Piano" },
-    { id: "37i9dQZF1DWUvQoIOFMFUT", title: "Stress Relief" },
-    { id: "37i9dQZF1DX3Ogo9pFv5Le", title: "Ambient Relaxation" },
+    { id: "0sXCOLjexzGdhto9ORY301", title: "Spanish Flamenco Guitar" },
+    { id: "37i9dQZF1DZ06evO0bCLUR", title: "This is Kristian Xhaferaj" },
   ];
   return (
     <AppShell>
