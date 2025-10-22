@@ -127,29 +127,50 @@ const MeditationGuide = () => {
         setSecondsLeft(60);
         setPromptIndex(0);
     };
+
+    const progress = (60 - secondsLeft) / 60;
   
     return (
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BrainCircuit /> One-Minute Meditation
           </CardTitle>
           <CardDescription>A short session to reset and refocus your mind.</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center space-y-6 text-center">
-            <div className='min-h-[100px] flex items-center justify-center'>
+        <CardContent className="flex flex-col items-center justify-center space-y-6 text-center relative h-[300px]">
+            <div 
+              className="absolute inset-0 bg-gradient-to-br from-primary/10 to-background transition-transform duration-1000"
+              style={{
+                clipPath: `circle(${isActive ? progress * 75 : 0}% at 50% 50%)`
+              }}
+            />
+            <div className='z-10 min-h-[100px] flex flex-col items-center justify-center gap-4'>
             {isActive ? (
-                <p className="text-xl text-foreground transition-opacity duration-1000">
-                    {prompts[promptIndex]}
-                </p>
+                <>
+                    <p className="text-xl text-foreground transition-opacity duration-1000 animate-fade-in-out" key={promptIndex}>
+                        {prompts[promptIndex]}
+                    </p>
+                    <p className="text-5xl font-bold text-primary">{secondsLeft}s</p>
+                </>
             ) : (
                 <p className="text-xl text-muted-foreground">Press start to begin your meditation.</p>
             )}
             </div>
-            {isActive && <p className="text-4xl font-bold text-primary">{secondsLeft}s</p>}
-            <Button onClick={handleStart} disabled={isActive} size="lg">
-                <Play className='mr-2' /> Start Meditation
-            </Button>
+            {!isActive && (
+                <Button onClick={handleStart} size="lg" className="z-10">
+                    <Play className='mr-2' /> Start Meditation
+                </Button>
+            )}
+            <style jsx>{`
+                @keyframes fade-in-out {
+                    0%, 100% { opacity: 0; }
+                    10%, 90% { opacity: 1; }
+                }
+                .animate-fade-in-out {
+                    animation: fade-in-out 5s infinite;
+                }
+            `}</style>
         </CardContent>
       </Card>
     );
