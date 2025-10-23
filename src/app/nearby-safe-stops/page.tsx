@@ -200,7 +200,8 @@ export default function NearbySafeStopsPage() {
     setSelectedType(type);
 
     const radius = 5000; // 5km radius for more precise results
-    const limit = 15; // Limit to the top 15 results
+    const fetchLimit = 50; // Fetch a larger pool of results
+    const displayLimit = 15; // But only show 15
 
     const queryMap = {
         hospital: `node[amenity=hospital](around:${radius},${location.latitude},${location.longitude});`,
@@ -217,7 +218,7 @@ export default function NearbySafeStopsPage() {
       (
         ${queryMap[type]}
       );
-      out body;
+      out ${fetchLimit};
       >;
       out skel qt;
     `;
@@ -237,10 +238,9 @@ export default function NearbySafeStopsPage() {
                     distance: getDistance(location.latitude, location.longitude, place.lat, place.lon)
                 }))
                 .sort((a: Place, b: Place) => a.distance - b.distance)
-                .slice(0, limit); // Take only the top 'limit' results
             
             const shuffledPlaces = shuffleArray(foundPlaces);
-            setPlaces(shuffledPlaces);
+            setPlaces(shuffledPlaces.slice(0, displayLimit));
         }
 
     } catch (e) {
@@ -369,7 +369,7 @@ export default function NearbySafeStopsPage() {
 
                     {places.length > 0 && (
                         <div className="space-y-4">
-                            <h3 className='text-lg font-semibold'>Top {places.length} results for "{placeTypeConfig[selectedType!]?.label}"</h3>
+                            <h3 className='text-lg font-semibold'>Showing {places.length} random results for "{placeTypeConfig[selectedType!]?.label}"</h3>
                             <ul className="divide-y divide-border rounded-md border">
                                 {places.map(place => (
                                     <li key={place.id} className="p-4 flex items-center justify-between hover:bg-secondary">
@@ -400,3 +400,5 @@ export default function NearbySafeStopsPage() {
     </AppShell>
   );
 }
+
+    
