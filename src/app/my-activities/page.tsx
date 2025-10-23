@@ -4,9 +4,11 @@ import { AppShell } from '@/components/layout/app-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Music, Wind, BrainCircuit, Play, Pause, RefreshCw } from 'lucide-react';
-import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/firebase';
+import { Loader2 } from 'lucide-react';
 
 const BreathingGuide = () => {
   const steps = [
@@ -207,6 +209,15 @@ const MeditationGuide = () => {
   };
 
 export default function MyActivitiesPage() {
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+        router.push('/');
+    }
+  }, [user, isUserLoading, router]);
+
   const playlists = [
     { id: "37i9dQZF1DX4sWSpwq3LiO", title: "Peaceful Piano" },
     { id: "0sXCOLjexzGdhto9ORY301", title: "Spanish Flamenco Guitar" },
@@ -215,6 +226,11 @@ export default function MyActivitiesPage() {
     { id: "6cTHO34HVJ2Caw3GeCe660", title: "The Best Of Harris Jayaraj" },
     { id: "37i9dQZF1DZ06evO4a7K5G", title: "This Is Yanni" },
   ];
+
+  if (isUserLoading || !user) {
+    return <AppShell><div className="flex justify-center items-center h-full"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div></AppShell>;
+  }
+
   return (
     <AppShell>
       <div className="space-y-6">

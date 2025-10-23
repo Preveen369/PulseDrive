@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { textToSpeech } from '@/ai/flows/text-to-speech';
 import { HeartRateIndicator } from '@/components/home/heart-rate-indicator';
 import { FatigueStatus } from '@/components/home/fatigue-status';
+import { useRouter } from 'next/navigation';
 
 type LiveStressData = {
   stressLevel: number;
@@ -37,6 +38,7 @@ export default function HomePage() {
   const streamRef = useRef<MediaStream | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
 
   const [isMounted, setIsMounted] = useState(false);
   const [isAnalysisRunning, setIsAnalysisRunning] = useState(false);
@@ -52,10 +54,19 @@ export default function HomePage() {
     audioRef.current = new Audio();
   }, []);
   
+  // Redirect if user is not logged in after check
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+        router.push('/');
+    }
+  }, [user, isUserLoading, router]);
+
   // Reset live data when user changes
   useEffect(() => {
-    setLiveData(defaultStressData);
-    setIsAnalysisRunning(false);
+    if (user) {
+        setLiveData(defaultStressData);
+        setIsAnalysisRunning(false);
+    }
   }, [user]);
 
   const playAlertSound = async (text: string) => {
@@ -193,13 +204,8 @@ export default function HomePage() {
     }
   };
   
-  if (isUserLoading || !isMounted) {
-    return <AppShell><div><Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" /></div></AppShell>;
-  }
-  
-  if (!user) {
-    // This can be a redirect or a message
-    return <AppShell><div>Please log in to view this page.</div></AppShell>;
+  if (isUserLoading || !user || !isMounted) {
+    return <AppShell><div className="flex justify-center items-center h-full"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div></AppShell>;
   }
 
   return (
