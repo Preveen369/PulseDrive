@@ -18,11 +18,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import React from "react";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
 const formSchema = z.object({
+  name: z.string().optional(),
   email: z.string().email({ message: "Please enter a valid email." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+});
+
+const signupSchema = formSchema.extend({
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
 });
 
 export function LoginForm() {
@@ -32,12 +37,17 @@ export function LoginForm() {
   const [isLoginView, setIsLoginView] = React.useState(true);
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(isLoginView ? formSchema : signupSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
     },
   });
+
+  React.useEffect(() => {
+    form.reset();
+  }, [isLoginView, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
@@ -50,7 +60,12 @@ export function LoginForm() {
           description: "Welcome back! Redirecting you to the dashboard.",
         });
       } else {
-        await createUserWithEmailAndPassword(auth, values.email, values.password);
+        const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+        if (userCredential.user) {
+            await updateProfile(userCredential.user, {
+                displayName: values.name,
+            });
+        }
         toast({
           title: "Account Created",
           description: "Welcome! Redirecting you to the dashboard.",
@@ -79,6 +94,21 @@ export function LoginForm() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {!isLoginView && (
+                 <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Enter full name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+            )}
             <FormField
               control={form.control}
               name="email"
