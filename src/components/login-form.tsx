@@ -74,10 +74,16 @@ export function LoginForm() {
       router.push("/home");
     } catch (error: any) {
       console.error(error);
+      let description = "An unexpected error occurred.";
+      if (error.code === 'auth/invalid-credential') {
+        description = "Invalid credentials. Please check your email and password and try again.";
+      } else if(error.message) {
+        description = error.message;
+      }
       toast({
         variant: "destructive",
         title: "Authentication Failed",
-        description: error.message || "An unexpected error occurred.",
+        description,
       });
     } finally {
       setIsSubmitting(false);
