@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, LayoutDashboard, Smile } from 'lucide-react';
+import { Home, LayoutDashboard, Smile, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/home', label: 'Home', icon: Home },
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/my-activities', label: 'Activities', icon: Smile },
+  { href: '/nearby-safe-stops', label: 'Safe Stops', icon: Shield },
 ];
 
 export function BottomNav() {
@@ -16,7 +17,7 @@ export function BottomNav() {
 
   return (
     <nav className="border-t bg-card md:hidden">
-      <div className="mx-auto flex h-16 max-w-md items-center justify-around px-4">
+      <div className="mx-auto grid h-16 max-w-md grid-cols-4 items-center justify-around px-4">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -34,7 +35,7 @@ export function BottomNav() {
                 className="h-6 w-6"
                 strokeWidth={isActive ? 2.5 : 2}
               />
-              <span className="text-xs">{item.label}</span>
+              <span className="text-xs text-center">{item.label}</span>
             </Link>
           );
         })}
