@@ -4,7 +4,7 @@ import { AppShell } from '@/components/layout/app-shell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUser } from '@/firebase';
-import { Loader2, MapPin, LocateFixed, Hospital, Shield, Fuel, ParkingCircle } from 'lucide-react';
+import { Loader2, MapPin, LocateFixed, Hospital, Shield, Fuel, Hotel } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -24,7 +24,7 @@ type Place = {
   distance: number;
 };
 
-type PlaceType = 'hospital' | 'police' | 'fuel' | 'rest_area';
+type PlaceType = 'hospital' | 'police' | 'fuel' | 'hotel';
 
 const placeTypeConfig = {
     hospital: {
@@ -42,10 +42,10 @@ const placeTypeConfig = {
         label: 'Petrol Bunks',
         queryValue: 'fuel'
     },
-    rest_area: {
-        icon: ParkingCircle,
-        label: 'Rest Areas',
-        queryValue: 'rest_area'
+    hotel: {
+        icon: Hotel,
+        label: 'Hotels and Lodges',
+        queryValue: 'hotel'
     }
 }
 
@@ -147,7 +147,10 @@ export default function NearbySafeStopsPage() {
         hospital: `node[amenity=hospital](around:${radius},${location.latitude},${location.longitude});`,
         police: `node[amenity=police](around:${radius},${location.latitude},${location.longitude});`,
         fuel: `node[amenity=fuel](around:${radius},${location.latitude},${location.longitude});`,
-        rest_area: `node[amenity=rest_area](around:${radius},${location.latitude},${location.longitude});`
+        hotel: `node[tourism=hotel][stars](around:${radius},${location.latitude},${location.longitude});
+        node[tourism=motel](around:${radius},${location.latitude},${location.longitude});
+        node[tourism=hostel](around:${radius},${location.latitude},${location.longitude});
+        node[tourism=guest_house](around:${radius},${location.latitude},${location.longitude});`
     };
 
     const query = `
