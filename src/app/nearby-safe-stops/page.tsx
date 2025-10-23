@@ -65,6 +65,23 @@ const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => 
   return R * c; // Distance in km
 };
 
+const shuffleArray = (array: Place[]) => {
+  let currentIndex = array.length,  randomIndex;
+
+  // While there remain elements to shuffle.
+  while (currentIndex > 0) {
+    // Pick a remaining element.
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+
+  return array;
+}
+
 export default function NearbySafeStopsPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
@@ -221,7 +238,9 @@ export default function NearbySafeStopsPage() {
                 }))
                 .sort((a: Place, b: Place) => a.distance - b.distance)
                 .slice(0, limit); // Take only the top 'limit' results
-            setPlaces(foundPlaces);
+            
+            const shuffledPlaces = shuffleArray(foundPlaces);
+            setPlaces(shuffledPlaces);
         }
 
     } catch (e) {
