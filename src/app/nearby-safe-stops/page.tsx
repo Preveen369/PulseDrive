@@ -182,7 +182,9 @@ export default function NearbySafeStopsPage() {
     setPlaces([]);
     setSelectedType(type);
 
-    const radius = 10000; // 10km radius
+    const radius = 5000; // 5km radius for more precise results
+    const limit = 15; // Limit to the top 15 results
+
     const queryMap = {
         hospital: `node[amenity=hospital](around:${radius},${location.latitude},${location.longitude});`,
         police: `node[amenity=police](around:${radius},${location.latitude},${location.longitude});`,
@@ -217,7 +219,8 @@ export default function NearbySafeStopsPage() {
                     ...place,
                     distance: getDistance(location.latitude, location.longitude, place.lat, place.lon)
                 }))
-                .sort((a: Place, b: Place) => a.distance - b.distance);
+                .sort((a: Place, b: Place) => a.distance - b.distance)
+                .slice(0, limit); // Take only the top 'limit' results
             setPlaces(foundPlaces);
         }
 
@@ -312,7 +315,7 @@ export default function NearbySafeStopsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Find Places</CardTitle>
-                    <CardDescription>Select a category to find places near your chosen location.</CardDescription>
+                    <CardDescription>Select a category to find places near your chosen location within a 5km radius.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -347,7 +350,7 @@ export default function NearbySafeStopsPage() {
 
                     {places.length > 0 && (
                         <div className="space-y-4">
-                            <h3 className='text-lg font-semibold'>Results for "{placeTypeConfig[selectedType!]?.label}"</h3>
+                            <h3 className='text-lg font-semibold'>Top {places.length} results for "{placeTypeConfig[selectedType!]?.label}"</h3>
                             <ul className="divide-y divide-border rounded-md border">
                                 {places.map(place => (
                                     <li key={place.id} className="p-4 flex items-center justify-between hover:bg-secondary">
@@ -368,7 +371,7 @@ export default function NearbySafeStopsPage() {
 
                     {!isSearching && places.length === 0 && selectedType && (
                         <div className="text-center p-8 text-muted-foreground">
-                            No {placeTypeConfig[selectedType]?.label.toLowerCase()} found within a 10km radius.
+                            No {placeTypeConfig[selectedType]?.label.toLowerCase()} found within a 5km radius.
                         </div>
                     )}
                 </CardContent>
