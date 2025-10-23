@@ -4,13 +4,64 @@ import { AppShell } from '@/components/layout/app-shell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUser } from '@/firebase';
-import { Loader2, MapPin, LocateFixed } from 'lucide-react';
+import { Loader2, MapPin, LocateFixed, Hospital, Shield, Fuel, ParkingCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 type Location = {
   latitude: number;
   longitude: number;
+};
+
+type Place = {
+  id: number;
+  lat: number;
+  lon: number;
+  tags: {
+    name: string;
+  };
+  distance: number;
+};
+
+type PlaceType = 'hospital' | 'police' | 'fuel' | 'rest_area';
+
+const placeTypeConfig = {
+    hospital: {
+        icon: Hospital,
+        label: 'Hospitals',
+        queryValue: 'hospital'
+    },
+    police: {
+        icon: Shield,
+        label: 'Police Stations',
+        queryValue: 'police'
+    },
+    fuel: {
+        icon: Fuel,
+        label: 'Petrol Bunks',
+        queryValue: 'fuel'
+    },
+    rest_area: {
+        icon: ParkingCircle,
+        label: 'Rest Areas',
+        queryValue: 'rest_area'
+    }
+}
+
+// Haversine formula to calculate distance
+const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371; // Radius of the Earth in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in km
 };
 
 export default function NearbySafeStopsPage() {
@@ -19,8 +70,13 @@ export default function NearbySafeStopsPage() {
   const [location, setLocation] = useState<Location | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
+
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<PlaceType | null>(null);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -54,10 +110,12 @@ export default function NearbySafeStopsPage() {
       return;
     }
 
-    setIsLoading(true);
+    setIsLoadingLocation(true);
     setError(null);
     setLocation(null);
     setAddress(null);
+    setPlaces([]);
+    setSelectedType(null);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -67,14 +125,63 @@ export default function NearbySafeStopsPage() {
         };
         setLocation(newLocation);
         getAddressFromCoordinates(newLocation.latitude, newLocation.longitude);
-        setIsLoading(false);
+        setIsLoadingLocation(false);
       },
       (err) => {
         setError(err.message);
-        setIsLoading(false);
+        setIsLoadingLocation(false);
       }
     );
   };
+  
+  const searchForPlaces = async (type: PlaceType) => {
+    if (!location) return;
+    
+    setIsSearching(true);
+    setSearchError(null);
+    setPlaces([]);
+    setSelectedType(type);
+
+    const radius = 10000; // 10km radius
+    const queryMap = {
+        hospital: `node[amenity=hospital](around:${radius},${location.latitude},${location.longitude});`,
+        police: `node[amenity=police](around:${radius},${location.latitude},${location.longitude});`,
+        fuel: `node[amenity=fuel](around:${radius},${location.latitude},${location.longitude});`,
+        rest_area: `node[amenity=rest_area](around:${radius},${location.latitude},${location.longitude});`
+    };
+
+    const query = `
+      [out:json];
+      (
+        ${queryMap[type]}
+      );
+      out body;
+      >;
+      out skel qt;
+    `;
+
+    try {
+        const response = await fetch('https://overpass-api.de/api/interpreter', {
+            method: 'POST',
+            body: query
+        });
+        const data = await response.json();
+        
+        if (data.elements) {
+            const foundPlaces = data.elements.map((place: any) => ({
+                ...place,
+                distance: getDistance(location.latitude, location.longitude, place.lat, place.lon)
+            })).sort((a: Place, b: Place) => a.distance - b.distance);
+            setPlaces(foundPlaces);
+        }
+
+    } catch (e) {
+        setSearchError('Failed to fetch nearby places. Please try again.');
+    } finally {
+        setIsSearching(false);
+    }
+  }
+
 
   if (isUserLoading || !user) {
     return (
@@ -96,20 +203,20 @@ export default function NearbySafeStopsPage() {
               <LocateFixed /> Find Your Location
             </CardTitle>
             <CardDescription>
-              Click the button below to detect your current location. This is required to find nearby safe stops.
+              Click the button to detect your location and find safe stops nearby.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center space-y-6 text-center">
-            <Button onClick={handleGetLocation} disabled={isLoading} size="lg">
-              {isLoading ? (
+            <Button onClick={handleGetLocation} disabled={isLoadingLocation} size="lg">
+              {isLoadingLocation ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <MapPin className="mr-2" />
               )}
-              {isLoading ? 'Detecting...' : 'Detect My Location'}
+              {isLoadingLocation ? 'Detecting...' : 'Detect My Location'}
             </Button>
             {location && (
-              <div className="p-4 bg-secondary rounded-md text-left w-full max-w-md">
+              <div className="p-4 bg-secondary rounded-md text-left w-full max-w-2xl">
                 <p className="font-semibold text-foreground">Your Location:</p>
                 <p className="text-sm text-muted-foreground">
                   Latitude: {location.latitude.toFixed(6)}, Longitude: {location.longitude.toFixed(6)}
@@ -137,6 +244,72 @@ export default function NearbySafeStopsPage() {
             )}
           </CardContent>
         </Card>
+
+        {location && (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Find Places</CardTitle>
+                    <CardDescription>Select a category to find places near you.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        {(Object.keys(placeTypeConfig) as PlaceType[]).map(type => {
+                            const config = placeTypeConfig[type];
+                            return (
+                                <Button 
+                                    key={type}
+                                    variant={selectedType === type ? "default" : "outline"}
+                                    onClick={() => searchForPlaces(type)}
+                                    disabled={isSearching}
+                                >
+                                    <config.icon className="mr-2" />
+                                    {config.label}
+                                </Button>
+                            )
+                        })}
+                    </div>
+                    
+                    {isSearching && (
+                        <div className="flex items-center justify-center p-8">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <p className="ml-4 text-muted-foreground">Searching for {placeTypeConfig[selectedType!]?.label}...</p>
+                        </div>
+                    )}
+                    {searchError && (
+                         <div className="p-4 bg-destructive/20 rounded-md text-destructive text-sm text-center">
+                            {searchError}
+                        </div>
+                    )}
+
+                    {places.length > 0 && (
+                        <div className="space-y-4">
+                            <h3 className='text-lg font-semibold'>Results for "{placeTypeConfig[selectedType!]?.label}"</h3>
+                            <ul className="divide-y divide-border rounded-md border">
+                                {places.map(place => (
+                                    <li key={place.id} className="p-4 flex items-center justify-between hover:bg-secondary">
+                                        <div>
+                                            <p className="font-semibold">{place.tags.name || "Unnamed Place"}</p>
+                                            <p className="text-sm text-muted-foreground">{place.distance.toFixed(2)} km away</p>
+                                        </div>
+                                        <Button asChild variant="ghost" size="sm">
+                                            <Link href={`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`} target="_blank" rel="noopener noreferrer">
+                                                Navigate
+                                            </Link>
+                                        </Button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {!isSearching && places.length === 0 && selectedType && (
+                        <div className="text-center p-8 text-muted-foreground">
+                            No {placeTypeConfig[selectedType]?.label.toLowerCase()} found within a 10km radius.
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        )}
       </div>
     </AppShell>
   );
