@@ -211,10 +211,13 @@ export default function NearbySafeStopsPage() {
         const data = await response.json();
         
         if (data.elements) {
-            const foundPlaces = data.elements.map((place: any) => ({
-                ...place,
-                distance: getDistance(location.latitude, location.longitude, place.lat, place.lon)
-            })).sort((a: Place, b: Place) => a.distance - b.distance);
+            const foundPlaces = data.elements
+                .filter((place: any) => place.tags && place.tags.name)
+                .map((place: any) => ({
+                    ...place,
+                    distance: getDistance(location.latitude, location.longitude, place.lat, place.lon)
+                }))
+                .sort((a: Place, b: Place) => a.distance - b.distance);
             setPlaces(foundPlaces);
         }
 
@@ -349,7 +352,7 @@ export default function NearbySafeStopsPage() {
                                 {places.map(place => (
                                     <li key={place.id} className="p-4 flex items-center justify-between hover:bg-secondary">
                                         <div>
-                                            <p className="font-semibold">{place.tags.name || "Unnamed Place"}</p>
+                                            <p className="font-semibold">{place.tags.name}</p>
                                             <p className="text-sm text-muted-foreground">{place.distance.toFixed(2)} km away</p>
                                         </div>
                                         <Button asChild variant="ghost" size="sm">
