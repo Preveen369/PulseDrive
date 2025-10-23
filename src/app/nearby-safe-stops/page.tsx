@@ -17,14 +17,36 @@ export default function NearbySafeStopsPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const [location, setLocation] = useState<Location | null>(null);
+  const [address, setAddress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/');
     }
   }, [user, isUserLoading, router]);
+
+  const getAddressFromCoordinates = async (latitude: number, longitude: number) => {
+    setIsGeocoding(true);
+    setAddress(null);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+      );
+      const data = await response.json();
+      if (data && data.display_name) {
+        setAddress(data.display_name);
+      } else {
+        setAddress('Could not retrieve address.');
+      }
+    } catch (err) {
+      setAddress('Failed to fetch address.');
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
@@ -34,13 +56,17 @@ export default function NearbySafeStopsPage() {
 
     setIsLoading(true);
     setError(null);
+    setLocation(null);
+    setAddress(null);
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setLocation({
+        const newLocation = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
-        });
+        };
+        setLocation(newLocation);
+        getAddressFromCoordinates(newLocation.latitude, newLocation.longitude);
         setIsLoading(false);
       },
       (err) => {
@@ -88,6 +114,17 @@ export default function NearbySafeStopsPage() {
                 <p className="text-sm text-muted-foreground">
                   Latitude: {location.latitude.toFixed(6)}, Longitude: {location.longitude.toFixed(6)}
                 </p>
+                {isGeocoding && (
+                    <div className='flex items-center gap-2 mt-2'>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className='text-sm text-muted-foreground'>Fetching address...</span>
+                    </div>
+                )}
+                {address && (
+                  <p className="text-sm text-foreground mt-2">
+                    <strong className='text-muted-foreground'>Address:</strong> {address}
+                  </p>
+                )}
               </div>
             )}
             {error && (
