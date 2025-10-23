@@ -3,8 +3,9 @@
 import { AppShell } from '@/components/layout/app-shell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { useUser } from '@/firebase';
-import { Loader2, MapPin, LocateFixed, Hospital, Shield, Fuel, Hotel } from 'lucide-react';
+import { Loader2, MapPin, LocateFixed, Hospital, Shield, Fuel, Hotel, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -72,6 +73,7 @@ export default function NearbySafeStopsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [typedLocation, setTypedLocation] = useState('');
 
   const [places, setPlaces] = useState<Place[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -83,6 +85,15 @@ export default function NearbySafeStopsPage() {
       router.push('/');
     }
   }, [user, isUserLoading, router]);
+
+  const resetState = () => {
+    setLocation(null);
+    setAddress(null);
+    setPlaces([]);
+    setSelectedType(null);
+    setError(null);
+    setSearchError(null);
+  }
 
   const getAddressFromCoordinates = async (latitude: number, longitude: number) => {
     setIsGeocoding(true);
@@ -111,11 +122,8 @@ export default function NearbySafeStopsPage() {
     }
 
     setIsLoadingLocation(true);
-    setError(null);
-    setLocation(null);
-    setAddress(null);
-    setPlaces([]);
-    setSelectedType(null);
+    resetState();
+    setTypedLocation('');
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -133,6 +141,38 @@ export default function NearbySafeStopsPage() {
       }
     );
   };
+
+  const handleSearchLocation = async () => {
+    if (!typedLocation) {
+        setError("Please enter a location to search.");
+        return;
+    }
+    
+    setIsLoadingLocation(true);
+    resetState();
+
+    try {
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(typedLocation)}&format=json&limit=1`
+        );
+        const data = await response.json();
+        if (data && data.length > 0) {
+            const result = data[0];
+            const newLocation = {
+                latitude: parseFloat(result.lat),
+                longitude: parseFloat(result.lon)
+            };
+            setLocation(newLocation);
+            setAddress(result.display_name);
+        } else {
+            setError("Location not found. Please try a different search term.");
+        }
+    } catch (err) {
+        setError("Failed to search for location.");
+    } finally {
+        setIsLoadingLocation(false);
+    }
+  }
   
   const searchForPlaces = async (type: PlaceType) => {
     if (!location) return;
@@ -206,35 +246,52 @@ export default function NearbySafeStopsPage() {
               <LocateFixed /> Find Your Location
             </CardTitle>
             <CardDescription>
-              Click the button to detect your location and find safe stops nearby.
+              Use automatic location detection or manually type a location to find safe stops.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center space-y-6 text-center">
+            <div className='flex w-full max-w-lg items-center space-x-2'>
+                 <Input 
+                    type="text"
+                    placeholder="E.g., New York, NY or an address"
+                    value={typedLocation}
+                    onChange={(e) => setTypedLocation(e.target.value)}
+                    disabled={isLoadingLocation}
+                 />
+                 <Button onClick={handleSearchLocation} disabled={isLoadingLocation}>
+                    {isLoadingLocation && typedLocation ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search />}
+                 </Button>
+            </div>
+             <div className="flex items-center space-x-2">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-xs text-muted-foreground">OR</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
             <Button onClick={handleGetLocation} disabled={isLoadingLocation} size="lg">
-              {isLoadingLocation ? (
+              {isLoadingLocation && !typedLocation ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <MapPin className="mr-2" />
               )}
-              {isLoadingLocation ? 'Detecting...' : 'Detect My Location'}
+              {isLoadingLocation && !typedLocation ? 'Detecting...' : 'Detect My Location'}
             </Button>
             {location && (
               <div className="p-4 bg-secondary rounded-md text-left w-full max-w-2xl">
-                <p className="font-semibold text-foreground">Your Location:</p>
-                <p className="text-sm text-muted-foreground">
-                  Latitude: {location.latitude.toFixed(6)}, Longitude: {location.longitude.toFixed(6)}
-                </p>
+                <p className="font-semibold text-foreground">Showing results for:</p>
                 {isGeocoding && (
                     <div className='flex items-center gap-2 mt-2'>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className='text-sm text-muted-foreground'>Fetching address...</span>
+                        <span className='text-sm text-muted-foreground'>Fetching address details...</span>
                     </div>
                 )}
                 {address && (
-                  <p className="text-sm text-foreground mt-2">
-                    <strong className='text-muted-foreground'>Address:</strong> {address}
+                  <p className="text-sm text-foreground mt-1">
+                    {address}
                   </p>
                 )}
+                 <p className="text-xs text-muted-foreground mt-2">
+                  (Lat: {location.latitude.toFixed(6)}, Lon: {location.longitude.toFixed(6)})
+                </p>
               </div>
             )}
             {error && (
@@ -242,7 +299,7 @@ export default function NearbySafeStopsPage() {
                 <p>
                   <strong>Error:</strong> {error}
                 </p>
-                <p className="mt-1">Please ensure you have granted location permissions for this site.</p>
+                <p className="mt-1">Please ensure you have granted location permissions or try a different search term.</p>
               </div>
             )}
           </CardContent>
@@ -252,7 +309,7 @@ export default function NearbySafeStopsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Find Places</CardTitle>
-                    <CardDescription>Select a category to find places near you.</CardDescription>
+                    <CardDescription>Select a category to find places near your chosen location.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -276,6 +333,7 @@ export default function NearbySafeStopsPage() {
                         <div className="flex items-center justify-center p-8">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                             <p className="ml-4 text-muted-foreground">Searching for {placeTypeConfig[selectedType!]?.label}...</p>
+
                         </div>
                     )}
                     {searchError && (
