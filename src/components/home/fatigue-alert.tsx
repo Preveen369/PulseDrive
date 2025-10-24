@@ -7,14 +7,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Siren } from 'lucide-react';
+import { Siren, Loader2 } from 'lucide-react';
 
 type FatigueAlertProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isAudioPlaying: boolean;
 };
 
-export function FatigueAlert({ open, onOpenChange }: FatigueAlertProps) {
+export function FatigueAlert({ open, onOpenChange, isAudioPlaying }: FatigueAlertProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -30,7 +31,12 @@ export function FatigueAlert({ open, onOpenChange }: FatigueAlertProps) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogAction className="w-full" onClick={() => onOpenChange(false)}>
+          <AlertDialogAction 
+            className="w-full" 
+            onClick={() => onOpenChange(false)}
+            disabled={isAudioPlaying}
+          >
+            {isAudioPlaying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Okay
           </AlertDialogAction>
         </AlertDialogFooter>

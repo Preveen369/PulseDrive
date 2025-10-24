@@ -271,7 +271,7 @@ export default function HomePage() {
         </div>
       </div>
       <StressAlert open={showStressAlert} onOpenChange={setShowStressAlert} />
-      <FatigueAlert open={showFatigueAlert} onOpenChange={setShowFatigueAlert} />
+      <FatigueAlert open={showFatigueAlert} onOpenChange={setShowFatigueAlert} isAudioPlaying={isAudioPlaying} />
       <canvas ref={canvasRef} className="hidden"></canvas>
     </AppShell>
   );
